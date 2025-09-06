@@ -133,11 +133,10 @@ body {
 
 /* تعريف الخط */
 @font-face {
-    font-family: 'SaudiRiyalNewSymbol';
-    src: url('{{ url_for("static", filename="fonts/saudiriyalsymbol.ttf") }}') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+    font-family: 'SaudiRiyal';
+    src: url('../fonts/saudiriyalsymbol.ttf') format('truetype');
 }
+
 
 .icon-saudi_riyal {
     font-family: 'SaudiRiyalNewSymbol';

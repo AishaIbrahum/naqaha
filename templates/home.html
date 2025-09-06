@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة نقاهة</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>اختر بوابتك</h1>
+    <div class="buttons">
+        <button onclick="window.location.href='/individual'">بوابة الأفراد</button>
+        <button onclick="window.location.href='/company'">بوابة الشركات</button>
+        <button onclick="window.location.href='/admin'">Admin</button>
+    </div>
+</body>
+</html>

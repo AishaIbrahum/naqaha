@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل دخول الأفراد</title>
+</head>
+<body>
+    <h2>تسجيل الدخول</h2>
+    <form action="{{ url_for('login') }}" method="POST">
+        <label>البريد الإلكتروني:</label>
+        <input type="email" name="email" required><br>
+        <label>كلمة المرور:</label>
+        <input type="password" name="password" required><br>
+        <button type="submit">دخول</button>
+    </form>
+
+    <p>ليس لديك حساب؟ 
+        <a href="{{ url_for('register') }}">سجل الآن</a>
+    </p>
+</body>
+</html>

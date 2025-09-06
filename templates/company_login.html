@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل دخول الشركات</title>
+</head>
+<body>
+    <h2>تسجيل دخول الشركات</h2>
+    <form action="{{ url_for('company_login') }}" method="POST">
+        <label>البريد الإلكتروني للشركة:</label>
+        <input type="email" name="email" required><br>
+        <label>كلمة المرور:</label>
+        <input type="password" name="password" required><br>
+        <button type="submit">دخول</button>
+    </form>
+    <a href="{{ url_for('company_register') }}">إنشاء حساب شركة جديد</a>
+</body>
+</html>
