@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة نقاهة - السياحة العلاجية المتميزة في المملكة</title>
+
+    <!-- CSS Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet"/>
+    <link href="/node_modules/@abdulrysr/saudi-riyal-new-symbol-font/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="contact-info">
+                    <span><i class="bi bi-telephone"></i>0000000</span>
+                    <span><i class="bi bi-envelope"></i>info@naqaha.sa</span>
+                    <span><i class="bi bi-clock"></i> متاحون 24/7</span>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="social-links justify-content-end">
+                    <a href="#"><i class="bi bi-facebook"></i></a>
+                    <a href="#"><i class="bi bi-twitter"></i></a>
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <a href="#"><i class="bi bi-linkedin"></i></a>
+                    <a href="#"><i class="bi bi-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#home">
+                <img src="{{ url_for('static', filename='images/logo.jpg') }}" 
+                 alt="نقاهة Logo" 
+                 width="40" height="40" 
+                 class="me-2 rounded-circle">
+                <span>نقاهة</span>
+            </a>
+            <div class="d-flex gap-2 align-items-center">
+                    <div class="dropdown">
+                        <img src="https://plus.unsplash.com/premium_photo-1664300894274-cfdf8cd3af6e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
+                             alt="Profile" 
+                             class="profile-img dropdown-toggle" 
+                             id="profileDropdown" 
+                             data-bs-toggle="dropdown" 
+                             aria-expanded="false">
+                        <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
+                            <li>
+                                <div class="dropdown-header">
+                                    <img src="https://plus.unsplash.com/premium_photo-1664300894274-cfdf8cd3af6e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Profile">
+                                    <h5>Hassan</h5>
+                                    <p>xxxxxxxxxxr@gmail.com</p>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="dropdown-menu-list">
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>My appointments</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-user-md"></i>
+                                    <span>Doctor Requests</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-user"></i>
+                                    <span>Personal information</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-cog"></i>
+                                    <span>Settings</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Billing and Plans</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-address-card"></i>
+                                    <span>Medical Card</span>
+                                </a>
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Log out</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="dropdown-footer">
+                                <div class="qr-code">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://example.com" 
+                                         alt="QR Code" width="100" height="100">
+                                </div>
+                                <p class="mb-0 text-muted">Scan QR and download App</p>
+                            </li>
+                        </ul>
+                    </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#home">الرئيسية</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#services">من نحن</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#departments">الحزم الجاهزة</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#doctors">اصنع خطتك</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#gallery">استشر طبيب</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#testimonials">آراء العملاء</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">اتصل بنا</a>
+                    </li>
+                </ul>
+                
+                    <button class="btn btn-outline-primary">تسجيل دخول</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+<!-- Hero Section -->
+<section class="hero-section" id="home">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1>رعاية صحية متكاملة<br>لحياة أفضل</h1>
+                    <p>نقدم لك أفضل الخدمات الطبية والعلاجية مع برامج سياحة علاجية متميزة في أرقى المراكز الطبية بالمملكة</p>
+                    <div class="hero-buttons">
+                        <a href="#appointment" class="btn-hero-primary">
+                            <i class="bi bi-calendar-check"></i>
+                            استشر طبيب مجاناً
+                        </a>
+                        <a href="#serviceSelection" class="btn-hero-secondary">
+                            استكشف خدماتنا
+                        </a>
+                    </div>
+                </div>
+            </div>
+           <!-- <div class="col-lg-6">
+                 <img src="{{ url_for('static', filename='images/select.jpg') }}" 
+                 alt="نقاهة Logo" 
+                 width="500" height="500" 
+                 class="me-2 rounded-circle">-->
+            </div> 
+        </div>
+    </div>
+</section>
+<!-- Stats Section -->
+<div class="container">
+    <div class="stats-section">
+        <div class="row">
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="150">0</span>
+                    <span class="stat-label">مركز طبي</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="500">0</span>
+                    <span class="stat-label">طبيب متخصص</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="10000">0</span>
+                    <span class="stat-label">مريض سعيد</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="25">0</span>
+                    <span class="stat-label">سنة خبرة</span>
+                </div>
+            </div>
+        </div>
+<!-- Features Section -->
+<section class="features-section" >
+    <div class="container" id="features">
+        <div class="text-center mb-5">
+            <h2 class="section-title">لماذا تختار نقاهة؟</h2>
+            <p class="text-muted">مميزات تجعلنا الخيار الأفضل لرعايتك الصحية</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6" data-aos="fade-up">
+                <div class="feature-box">
+                    <div class="feature-icon-box">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <h3 class="feature-title">خبرة طويلة</h3>
+                    <p>أكثر من 5 أعوام من الخبرة في تقديم الرعاية الصحية المتميزة</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="feature-box">
+                    <div class="feature-icon-box">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3 class="feature-title">معايير عالمية</h3>
+                    <p>حاصلون على شهادات الجودة والاعتماد الدولية</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="feature-box">
+                    <div class="feature-icon-box">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h3 class="feature-title">خدمة 24/7</h3>
+                    <p>متواجدون على مدار الساعة لتقديم المساعدة</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="feature-box">
+                    <div class="feature-icon-box">
+                        <i class="bi bi-geo-alt"></i>
+                    </div>
+                    <h3 class="feature-title">مواقع متعددة</h3>
+                    <p>شبكة واسعة من المراكز الطبية في جميع أنحاء المملكة</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="feature-box">
+                    
+                    <div class="feature-icon-box">
+                         <i class="icon-saudi_riyal">&#xea;</i>
+                    </div>
+                    <h3 class="feature-title">أسعار تنافسية</h3>
+                    <p>باقات وعروض مناسبة لجميع الفئات مع خطط دفع مرنة</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
+                <div class="feature-box">
+                    <div class="feature-icon-box">
+                        <i class="bi bi-translate"></i>
+                    </div>
+                    <h3 class="feature-title">لغات متعددة</h3>
+                    <p>فريق طبي يتحدث عدة لغات لخدمة جميع المرضى</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enhanced Service Selection Section -->
+<section class="service-selection-section py-5" id="serviceSelection">
+    <!-- Animated Background Elements -->
+    <div class="service-bg-elements">
+        <div class="service-floating-shape shape-1"></div>
+        <div class="service-floating-shape shape-2"></div>
+        <div class="service-floating-shape shape-3"></div>
+        <div class="service-floating-shape shape-4"></div>
+    </div>
+
+    <div class="container position-relative">
+        <!-- Section Header -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-10 text-center">
+                <div class="section-badge mb-4" data-aos="zoom-in">
+                    <i class="bi bi-heart-pulse me-2"></i>
+                    ابدأ رحلتك العلاجية
+                </div>
+                <h2 class="display-4 fw-bold text-dark mb-4" data-aos="fade-up" data-aos-delay="100">
+                   خدمـاتنا وفـقاً لاحتياجاتك
+                </h2>
+                <p class="lead text-muted mb-0" data-aos="fade-up" data-aos-delay="200">
+                    نقدم العديد من الخدمات التي تلبي احتياجات المرضى المختلفة، والمصممة خصيصًا لتقديم تجربة مميزة لهم.
+
+                </p>
+            </div>
+        </div>
+
+        <!-- Service Selection Buttons -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="service-buttons-container" data-aos="fade-up" data-aos-delay="300">
+                    <!-- Ready Packages Button -->
+                    <div class="service-option" data-aos="fade-right" data-aos-delay="400">
+                        <button class="service-btn ready-packages-btn" onclick="selectService('ready-packages')">
+                            <div class="btn-content">
+                                <div class="btn-icon">
+                                    <i class="bi bi-box-seam"></i>
+                                    <div class="icon-pulse"></div>
+                                </div>
+                                <div class="btn-text">
+                                    <h3>الحزم الجاهزة</h3>
+                                    <p>باقات طبية معدة مسبقاً وجاهزة للحجز الفوري</p>
+                                </div>
+                                <div class="btn-arrow">
+                                    <i class="bi bi-chevron-left"></i>
+                                </div>
+                            </div>
+                            <div class="btn-badge popular">الأكثر طلباً</div>
+                            <div class="btn-glow-effect"></div>
+                            <div class="btn-ripple"></div>
+                        </button>
+                    </div>
+
+                    <!-- Custom Package Button -->
+                    <div class="service-option" data-aos="fade-left" data-aos-delay="500">
+                        <button class="service-btn custom-package-btn" onclick="selectService('custom-package')">
+                            <div class="btn-content">
+                                <div class="btn-icon">
+                                    <i class="bi bi-gear-fill"></i>
+                                    <div class="icon-pulse"></div>
+                                </div>
+                                <div class="btn-text">
+                                    <h3>الحزمة المخصصة</h3>
+                                    <p>صمم برنامجك العلاجي حسب احتياجاتك الخاصة</p>
+                                </div>
+                                <div class="btn-arrow">
+                                    <i class="bi bi-chevron-left"></i>
+                                </div>
+                            </div>
+                            <div class="btn-badge premium">مميزة</div>
+                            <div class="btn-glow-effect"></div>
+                            <div class="btn-ripple"></div>
+                        </button>
+                    </div>
+
+                    <!-- Recreation Button -->
+                    <div class="service-option" data-aos="fade-right" data-aos-delay="600">
+                        <button class="service-btn recreation-btn" onclick="selectService('recreation')">
+                            <div class="btn-content">
+                                <div class="btn-icon">
+                                    <i class="bi bi-tree-fill"></i>
+                                    <div class="icon-pulse"></div>
+                                </div>
+                                <div class="btn-text">
+                                    <h3>برامج الاستجمام</h3>
+                                    <p>رحلات استرخاء وتجديد للنشاط والحيوية</p>
+                                </div>
+                                <div class="btn-arrow">
+                                    <i class="bi bi-chevron-left"></i>
+                                </div>
+                            </div>
+                            <div class="btn-badge relaxing">مريح</div>
+                            <div class="btn-glow-effect"></div>
+                            <div class="btn-ripple"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Service Features Preview -->
+                <div class="service-features-preview mt-5" data-aos="fade-up" data-aos-delay="700">
+                    <div class="row g-3">
+                        <div class="col-md-4 text-center">
+                            <div class="feature-preview-item">
+                                <div class="feature-icon-small">
+                                    <i class="bi bi-shield-check"></i>
+                                </div>
+                                <span>ضمان الجودة</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="feature-preview-item">
+                                <div class="feature-icon-small">
+                                    <i class="bi bi-clock-history"></i>
+                                </div>
+                                <span>متابعة دائمة</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="feature-preview-item">
+                                <div class="feature-icon-small">
+                                    <i class="bi bi-heart-pulse"></i>
+                                </div>
+                                <span>رعاية متكاملة</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Doctors Section -->
+<section class="doctors-section" id="doctors">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">تجربة الأطباء مع نقاهة</h2>
+            <p class="text-muted">نخبة من أفضل الأطباء والاستشاريين</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6" data-aos="fade-up">
+                <div class="doctor-card">
+                    <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3" 
+                         alt="دكتور" class="doctor-image">
+                    <div class="doctor-info">
+                        <h4 class="doctor-name">د. أحمد محمد</h4>
+                        <p class="doctor-specialty">استشاري جراحة القلب</p>
+                        <p class="doctor-specialty2">"من خلال نقاهة قدرت أوصل للمرضى بشكل أسرع وأوفر لهم خيارات علاجية مناسبة مع خدمات متابعة ممتازة."</p>
+                        <div class="doctor-rating">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div class="doctor-social">
+                            <a href="#"><i class="bi bi-facebook"></i></a>
+                            <a href="#"><i class="bi bi-twitter"></i></a>
+                            <a href="#"><i class="bi bi-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="doctor-card">
+                    <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-4.0.3" 
+                         alt="دكتورة" class="doctor-image">
+                    <div class="doctor-info">
+                        <h4 class="doctor-name">د. سارة العلي</h4>
+                        <p class="doctor-specialty">استشارية طب الأطفال</p>
+                        <p class="doctor-specialty2">"نقاهة سهلت التواصل مع المرضى الدوليين وقدمت لهم رحلة علاجية متكاملة، وهذا رفع من جودة الخدمة اللي نقدمها."</p>
+                        <div class="doctor-rating">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div class="doctor-social">
+                            <a href="#"><i class="bi bi-facebook"></i></a>
+                            <a href="#"><i class="bi bi-twitter"></i></a>
+                            <a href="#"><i class="bi bi-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="doctor-card">
+                    <img src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3" 
+                         alt="دكتور" class="doctor-image">
+                    <div class="doctor-info">
+                        <h4 class="doctor-name">د. خالد السعيد</h4>
+                        <p class="doctor-specialty">استشاري جراحة العظام</p>
+                        <p class="doctor-specialty2">"أكثر ما يميز نقاهة هو المتابعة بعد العمليات، المريض يحس إنه ما هو لحاله، وهذا ينعكس على نجاح العلاج."</p>
+
+                        <div class="doctor-rating">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div class="doctor-social">
+                            <a href="#"><i class="bi bi-facebook"></i></a>
+                            <a href="#"><i class="bi bi-twitter"></i></a>
+                            <a href="#"><i class="bi bi-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="doctor-card">
+                    <img src="https://images.unsplash.com/photo-1591604021695-0c69b7c05981?ixlib=rb-4.0.3" 
+                         alt="دكتورة" class="doctor-image">
+                    <div class="doctor-info">
+                        <h4 class="doctor-name">د. نورا الحربي</h4>
+                        <p class="doctor-specialty">استشارية الجلدية</p>
+                         <p class="doctor-specialty2">"لاحظت فرق كبير مع نقاهة في تنظيم المواعيد وتحضير المرضى قبل جلسات العلاج، وهذا ساعدني أركز على تقديم أفضل رعاية."</p>
+
+                        <div class="doctor-rating">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div class="doctor-social">
+                            <a href="#"><i class="bi bi-facebook"></i></a>
+                            <a href="#"><i class="bi bi-twitter"></i></a>
+                            <a href="#"><i class="bi bi-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Gallery Section -->
+<section class="gallery-section" id="gallery">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">معرض الصور</h2>
+            <p class="text-muted">جولة داخل مراكزنا الطبية</p>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-item" data-aos="zoom-in">
+                <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3" alt="مركز طبي">
+                <div class="gallery-overlay">
+                    <i class="bi bi-zoom-in gallery-icon"></i>
+                </div>
+            </div>
+            <div class="gallery-item" data-aos="zoom-in" data-aos-delay="100">
+                <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?ixlib=rb-4.0.3" alt="غرفة عمليات">
+                <div class="gallery-overlay">
+                    <i class="bi bi-zoom-in gallery-icon"></i>
+                </div>
+            </div>
+            <div class="gallery-item" data-aos="zoom-in" data-aos-delay="200">
+                <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3" alt="غرفة مريض">
+                <div class="gallery-overlay">
+                    <i class="bi bi-zoom-in gallery-icon"></i>
+                </div>
+            </div>
+            <div class="gallery-item" data-aos="zoom-in" data-aos-delay="300">
+                <img src="https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?ixlib=rb-4.0.3" alt="معدات طبية">
+                <div class="gallery-overlay">
+                    <i class="bi bi-zoom-in gallery-icon"></i>
+                </div>
+            </div>
+            <div class="gallery-item" data-aos="zoom-in" data-aos-delay="400">
+                <img src="https://images.unsplash.com/photo-1504439468489-c8920d796a29?ixlib=rb-4.0.3" alt="استقبال">
+                <div class="gallery-overlay">
+                    <i class="bi bi-zoom-in gallery-icon"></i>
+                </div>
+            </div>
+            <div class="gallery-item" data-aos="zoom-in" data-aos-delay="500">
+                <img src="https://images.unsplash.com/photo-1631815588090-94616080baac?ixlib=rb-4.0.3" alt="مختبر">
+                <div class="gallery-overlay">
+                    <i class="bi bi-zoom-in gallery-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section" id="testimonials">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">آراء عملائنا</h2>
+            <p class="text-muted">ماذا يقول عملاؤنا عن خدماتنا</p>
+        </div>
+        <div class="swiper testimonialSwiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="testimonial-card">
+                        <i class="bi bi-quote testimonial-quote"></i>
+                        <p class="testimonial-text">خدمة ممتازة وطاقم طبي محترف جداً. تجربة علاجية رائعة من البداية حتى النهاية. أنصح الجميع بالتعامل معهم.</p>
+                        <div class="testimonial-author">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3" alt="عميل" class="author-image">
+                            <div class="author-info">
+                                <h5>محمد الشمري</h5>
+                                <p>مريض سابق</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="testimonial-card">
+                        <i class="bi bi-quote testimonial-quote"></i>
+                        <p class="testimonial-text">أفضل مركز طبي تعاملت معه. الأطباء متميزون والخدمة على أعلى مستوى. شكراً لكم على الاهتمام والرعاية.</p>
+                        <div class="testimonial-author">
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3" alt="عميلة" class="author-image">
+                            <div class="author-info">
+                                <h5>فاطمة العتيبي</h5>
+                                <p>مريضة سابقة</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="testimonial-card">
+                        <i class="bi bi-quote testimonial-quote"></i>
+                        <p class="testimonial-text">تجربة استثنائية بكل المقاييس. من الحجز وحتى المتابعة بعد العلاج، كل شيء كان مثالياً. ممتن جداً لهذا الفريق الرائع.</p>
+                        <div class="testimonial-author">
+                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3" alt="عميل" class="author-image">
+                            <div class="author-info">
+                                <h5>عبدالله القحطاني</h5>
+                                <p>مريض سابق</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact-section" id="contact">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">تواصل معنا</h2>
+            <p class="text-muted">نحن هنا لخدمتك والإجابة على استفساراتك</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <form class="contact-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="الاسم الكامل" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <input type="email" class="form-control" placeholder="البريد الإلكتروني" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <input type="tel" class="form-control" placeholder="رقم الهاتف" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <select class="form-control">
+                                    <option>اختر القسم</option>
+                                    <option>قسم القلب</option>
+                                    <option>قسم العظام</option>
+                                    <option>قسم الأطفال</option>
+                                    <option>قسم الجلدية</option>
+                                    <option>أخرى</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <textarea class="form-control" rows="5" placeholder="رسالتك" required></textarea>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-send me-2"></i>إرسال الرسالة
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4">
+                <div class="contact-info-box">
+                    <h4 class="mb-4">معلومات التواصل</h4>
+                    <div class="contact-info-item">
+                        <i class="bi bi-geo-alt"></i>
+                        <div>
+                            <h6>العنوان</h6>
+                            <p>الرياض، المملكة العربية السعودية</p>
+                        </div>
+                    </div>
+                    <div class="contact-info-item">
+                        <i class="bi bi-telephone"></i>
+                        <div>
+                            <h6>الهاتف</h6>
+                            <p>920000000</p>
+                        </div>
+                    </div>
+                    <div class="contact-info-item">
+                        <i class="bi bi-envelope"></i>
+                        <div>
+                            <h6>البريد الإلكتروني</h6>
+                            <p>info@naqaha.sa</p>
+                        </div>
+                    </div>
+                    <div class="contact-info-item">
+                        <i class="bi bi-clock"></i>
+                        <div>
+                            <h6>ساعات العمل</h6>
+                            <p>24/7 طوال أيام الأسبوع</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="footer-widget">
+                    <h4>عن نقاهة</h4>
+                    <p>منصة رائدة في السياحة العلاجية، نقدم خدمات طبية متميزة في أرقى المراكز الطبية بالمملكة العربية السعودية.</p>
+                    <div class="footer-social">
+                        <a href="#"><i class="bi bi-facebook"></i></a>
+                        <a href="#"><i class="bi bi-twitter"></i></a>
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                        <a href="#"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <div class="footer-widget">
+                    <h4>روابط سريعة</h4>
+                    <ul class="footer-links">
+                        <li><a href="#home">الرئيسية</a></li>
+                        <li><a href="#services">الخدمات</a></li>
+                        <li><a href="#departments">الأقسام</a></li>
+                        <li><a href="#doctors">الأطباء</a></li>
+                        <li><a href="#contact">اتصل بنا</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <div class="footer-widget">
+                    <h4>الخدمات</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">الفحص الشامل</a></li>
+                        <li><a href="#">العمليات الجراحية</a></li>
+                        <li><a href="#">العلاج الطبيعي</a></li>
+                        <li><a href="#">طب الأسنان</a></li>
+                        <li><a href="#">طب العيون</a></li>
+                        <li><a href="#">السياحة العلاجية</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-12">
+                <div class="footer-widget">
+                    <h4>النشرة البريدية</h4>
+                    <p>اشترك للحصول على آخر الأخبار والعروض</p>
+                    <form class="mt-3">
+                        <div class="input-group">
+                            <input type="email" class="form-control" placeholder="بريدك الإلكتروني">
+                            <button class="btn btn-primary" type="submit">اشترك</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 نقاهة. جميع الحقوق محفوظة. | <a href="#">سياسة الخصوصية</a> | <a href="#">الشروط والأحكام</a></p>
+        </div>
+    </div>
+</footer>
+
+<!-- Floating Appointment Button -->
+<div class="floating-appointment">
+    <button class="btn-appointment" onclick="openAppointmentModal()">
+        <i class="bi bi-calendar-check"></i>
+        احجز موعد
+    </button>
+</div>
+
+<!-- WhatsApp Button -->
+<a href="https://wa.me/966920000000" class="whatsapp-float" target="_blank">
+    <i class="bi bi-whatsapp"></i>
+</a>
+<!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
+</body>
+</html>
