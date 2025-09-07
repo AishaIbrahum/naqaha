@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء حساب الأفراد</title>
+</head>
+<body>
+    <h2>إنشاء حساب جديد</h2>
+    <form action="{{ url_for('register') }}" method="POST">
+        <label>اسم المستخدم:</label>
+        <input type="text" name="username" required><br>
+
+        <label>الاسم الأول:</label>
+        <input type="text" name="first_name"><br>
+
+        <label>الاسم الأخير:</label>
+        <input type="text" name="last_name"><br>
+
+        <label>البريد الإلكتروني:</label>
+        <input type="email" name="email" required><br>
+
+        <label>كلمة المرور:</label>
+        <input type="password" name="password" required><br>
+
+        <label>رقم الجوال:</label>
+        <input type="text" name="phone"><br>
+
+        <label>الجنس:</label>
+        <select name="gender">
+            <option value="">اختر</option>
+            <option value="Male">ذكر</option>
+            <option value="Female">أنثى</option>
+            
+        </select><br>
+
+        <label>الدولة:</label>
+        <select name="country" id="country-select">
+            <option value="">اختر الدولة</option>
+        </select><br>
+
+        <label>المدينة:</label>
+        <input type="text" name="city"><br>
+
+        <label>العنوان:</label>
+        <input type="text" name="address"><br>
+
+        <label>تاريخ الميلاد:</label>
+        <input type="date" name="birth_date"><br>
+
+        <button type="submit">تسجيل</button>
+    </form>
+
+    <script>
+        fetch("{{ url_for('static', filename='countries.json') }}")
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById("country-select");
+            data.forEach(country => {
+                const option = document.createElement("option");
+                option.value = country.name;
+                option.text = country.name;
+                select.add(option);
+            });
+        });
+    </script>
+</body>
+</html>

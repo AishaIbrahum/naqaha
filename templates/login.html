@@ -1,22 +1,137 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل دخول الأفراد</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <title>تسجيل الدخول / إنشاء حساب</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+   
 </head>
 <body>
-    <h2>تسجيل الدخول</h2>
-    <form action="{{ url_for('login') }}" method="POST">
-        <label>البريد الإلكتروني:</label>
-        <input type="email" name="email" required><br>
-        <label>كلمة المرور:</label>
-        <input type="password" name="password" required><br>
-        <button type="submit">دخول</button>
-    </form>
+    
 
-    <p>ليس لديك حساب؟ 
-        <a href="{{ url_for('register') }}">سجل الآن</a>
-    </p>
+    <div class="container" id="container">
+        <!-- Sign Up Form Container -->
+        <div class="form-container sign-up-container">
+            <form id="registerForm" action="{{ url_for('register') }}" method="POST">
+                <h1>إنشاء حساب</h1>
+                <div class="social-container">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-google-plus-g"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+                <span>أو استخدم بريدك الإلكتروني للتسجيل</span>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <input type="text" name="username" placeholder="اسم المستخدم" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="البريد الإلكتروني" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="first_name" placeholder="الاسم الأول">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="last_name" placeholder="الاسم الأخير">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name="password" placeholder="كلمة المرور" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="phone" placeholder="رقم الجوال">
+                    </div>
+                    <div class="form-group">
+                        <select name="gender">
+                            <option value="">الجنس</option>
+                            <option value="Male">ذكر</option>
+                            <option value="Female">أنثى</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select name="country" id="country-select">
+                            <option value="">اختر الدولة</option>
+                            <option value="السعودية">السعودية</option>
+                            <option value="مصر">مصر</option>
+                            <option value="الإمارات">الإمارات</option>
+                            <option value="الكويت">الكويت</option>
+                            <option value="قطر">قطر</option>
+                            <option value="البحرين">البحرين</option>
+                            <option value="عُمان">عُمان</option>
+                            <option value="الأردن">الأردن</option>
+                            <option value="لبنان">لبنان</option>
+                            <option value="العراق">العراق</option>
+                            <option value="سوريا">سوريا</option>
+                            <option value="فلسطين">فلسطين</option>
+                            <option value="اليمن">اليمن</option>
+                            <option value="ليبيا">ليبيا</option>
+                            <option value="تونس">تونس</option>
+                            <option value="الجزائر">الجزائر</option>
+                            <option value="المغرب">المغرب</option>
+                            <option value="السودان">السودان</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="city" placeholder="المدينة">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="address" placeholder="العنوان">
+                    </div>
+                    <div class="form-group full-width">
+                        <input type="date" name="birth_date">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary">تسجيل</button>
+            </form>
+        </div>
+
+        <!-- Sign In Form Container -->
+        <div class="form-container sign-in-container">
+            <form id="loginForm" action="{{ url_for('login') }}" method="POST">
+                <h1>تسجيل الدخول</h1>
+                <div class="social-container">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-google-plus-g"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+                <span>أو استخدم حسابك</span>
+                
+                <div class="login-inputs">
+                    <input type="email" name="email" placeholder="البريد الإلكتروني" required>
+                    <input type="password" name="password" placeholder="كلمة المرور" required>
+                </div>
+                
+                <a href="#" class="forgot-password">هل نسيت كلمة المرور؟</a>
+                
+                <button type="submit" class="btn-primary">دخول</button>
+            </form>
+        </div>
+
+        <!-- Overlay Container with Sliding Panel -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <!-- Left Panel (Shows when Register is active) -->
+                <div class="overlay-panel overlay-left">
+                    <i class="fas fa-graduation-cap decoration-icon top-left"></i>
+                    <h1>أهلاً مرحباً بعودتك!</h1>
+                    <p>للبقاء على اتصال معنا، يرجى تسجيل الدخول بمعلوماتك الشخصية</p>
+                    <button class="btn-ghost" id="signIn">تسجيل الدخول</button>
+                    <i class="fas fa-book decoration-icon bottom-right"></i>
+                </div>
+                <!-- Right Panel (Shows by default with Login) -->
+                <div class="overlay-panel overlay-right">
+                    <i class="fas fa-user-graduate decoration-icon top-left"></i>
+                    <h1>أهلاً بك!</h1>
+                    <p>أدخل تفاصيلك الشخصية وابدأ رحلتك معنا</p>
+                    <button class="btn-ghost" id="signUp">إنشاء حساب</button>
+                    <i class="fas fa-laptop-code decoration-icon bottom-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>

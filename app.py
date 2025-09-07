@@ -1,6 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from models import db, User, Company, Admin
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_migrate import Migrate   # ✅ استدعاء المكتبة
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "secretkey123"
@@ -10,9 +12,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # ربط قاعدة البيانات بالـ app
 db.init_app(app)
 
-# إنشاء الجداول لو ما كانت موجودة
-with app.app_context():
-    db.create_all()
+# ✅ تفعيل الـ Migrate
+migrate = Migrate(app, db)
+
+# ما نحتاج db.create_all() بعد الآن (خليه مش مُفعل)
+# with app.app_context():
+#     db.create_all()
+
 
 # ------------------- الصفحات -------------------
 
@@ -41,18 +47,43 @@ def login():
             flash("البريد أو كلمة السر خاطئة!", "danger")
     return render_template('login.html')
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
         password = generate_password_hash(request.form['password'])
-        new_user = User(username=username, email=email, password=password)
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        phone = request.form.get('phone')
+        gender = request.form.get('gender')
+        country = request.form.get('country')
+        city = request.form.get('city')
+        address = request.form.get('address')
+        birth_date_str = request.form.get('birth_date')
+        birth_date = datetime.strptime(birth_date_str, "%Y-%m-%d").date() if birth_date_str else None
+
+        new_user = User(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+            gender=gender,
+            country=country,
+            city=city,
+            address=address,
+            birth_date=birth_date
+        )
         db.session.add(new_user)
         db.session.commit()
-        flash("تم إنشاء الحساب بنجاح! سجل الدخول الآن.", "success")
+        flash("تم إنشاء الحساب بنجاح!", "success")
         return redirect(url_for('login'))
+
     return render_template('register.html')
+
 
 # ------------------- بوابة الشركات -------------------
 @app.route('/company')
