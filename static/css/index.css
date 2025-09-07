@@ -69,11 +69,13 @@ body {
 .dropdown-header h5 {
     margin: 0;
     font-weight: 600;
+    color: white;
 }
 
 .dropdown-header p {
     margin: 5px 0 0;
     opacity: 0.9;
+    color: white;
 }
 
 .dropdown-divider {
@@ -87,7 +89,7 @@ body {
 
 .dropdown-item {
     padding: 10px 20px;
-    color: #444;
+    color: #f0eeee;
     transition: background-color 0.2s;
     display: flex;
     align-items: center;

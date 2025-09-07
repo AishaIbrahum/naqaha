@@ -30,7 +30,8 @@ def portal_choice():
 @app.route('/individual')
 def individual_index():
     if 'user_id' in session:
-        return render_template('index.html')
+        user = User.query.get(session['user_id'])
+        return render_template('index.html', user=user)
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -46,6 +47,9 @@ def login():
         else:
             flash("البريد أو كلمة السر خاطئة!", "danger")
     return render_template('login.html')
+
+
+
 
 
 @app.route('/register', methods=['GET', 'POST'])

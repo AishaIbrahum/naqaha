@@ -291,7 +291,7 @@
 
         /* Overlay Panel */
         .overlay {
-            background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 50%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, #f2f2f2 0%, var(--primary-color) 50%, var(--secondary-color) 100%);
             background-repeat: no-repeat;
             background-size: cover;
             background-position: 0 0;
@@ -345,6 +345,7 @@
         .overlay-right {
             left: 0;
             transform: translateX(20%);
+            
         }
 
         .container.right-panel-active .overlay-right {
@@ -497,3 +498,19 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .flash-messages {
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    .alert {
+        padding: 10px 15px;
+        border-radius: 5px;
+        color: #fff;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .alert-success { background-color: #2ecc71; } /* أخضر */
+    .alert-danger  { background-color: #e74c3c; } /* أحمر */
+    .alert-info    { background-color: #3498db; } /* أزرق */
