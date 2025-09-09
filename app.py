@@ -18,7 +18,7 @@ db.init_app(app)
 migrate = Migrate(app, db)
 
 # مسار حفظ الصور
-IMAGE_UPLOAD_FOLDER = "/mnt/c/Users/hanee/OneDrive/Desktop/naqaha/static/images"
+IMAGE_UPLOAD_FOLDER = "/mnt/c/Users/-aish/Desktop/naqaha_last_version/static/images"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 app.config["UPLOAD_FOLDER"] = IMAGE_UPLOAD_FOLDER
 
