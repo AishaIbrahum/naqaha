@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نقاهة</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ready_packages.css') }}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top bg-light">
+  <div class="container d-flex align-items-center justify-content-between">
+
+    <!-- الشعار -->
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('individual_index') }}">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" 
+             alt="نقاهة Logo" width="40" height="40" class="me-2 rounded-circle">
+        <span>نقاهة</span>
+    </a>
+
+    <!-- الملف الشخصي -->
+    {% if user %}
+    <div class="dropdown">
+        <img src="{{ user.profile_image or 'https://plus.unsplash.com/premium_photo-1664300894274-cfdf8cd3af6e?q=80&w=1170' }}" 
+             alt="Profile" class="profile-img dropdown-toggle rounded-circle" 
+             id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" width="40" height="40">
+        <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
+            <li>
+                <div class="dropdown-header text-center">
+                    <img src="{{ user.profile_image or 'https://plus.unsplash.com/premium_photo-1664300894274-cfdf8cd3af6e?q=80&w=1170' }}" 
+                         alt="Profile" class="rounded-circle" width="80" height="80">
+                    <h5>{{ user.first_name }} {{ user.last_name }}</h5>
+                    <p>{{ user.username }} | {{ user.email }}</p>
+                </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-check"></i>مواعيدي</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-user-md"></i>تواصلي مع الأطباء</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i>معلوماتي الشخصية</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> الأعداد</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-credit-card"></i>الفواتير وخطط الدفع</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-address-card"></i>بطاقتي الصحية</a></li>
+            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</a></li>
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- روابط القائمة -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav d-flex flex-row gap-3 mx-auto">
+            <li class="nav-item"><a class="nav-link active" href="{{ url_for('individual_index') }}">الرئيسية</a></li>
+            <li class="nav-item"><a class="nav-link" href="#services">من نحن</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('ready_packages') }}">الحزم الجاهزة</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('custom_plan') }}">اصنع خطتك</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('consult_doctor') }}">استشر طبيب</a></li>
+            <li class="nav-item"><a class="nav-link" href="#testimonials">آراء العملاء</a></li>
+            <li class="nav-item"><a class="nav-link" href="#contact">اتصل بنا</a></li>
+        </ul>
+    </div>
+
+  </div>
+</nav>
+
+<div class="container mt-4">
+    {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

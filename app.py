@@ -1,8 +1,10 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, session
-from models import db, User, Company, Admin
+from models import db, User, Company, Admin, Package
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_migrate import Migrate   # ✅ استدعاء المكتبة
+from werkzeug.utils import secure_filename
+from flask_migrate import Migrate
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.secret_key = "secretkey123"
@@ -12,16 +14,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # ربط قاعدة البيانات بالـ app
 db.init_app(app)
 
-# ✅ تفعيل الـ Migrate
+# تفعيل الـ Migrate
 migrate = Migrate(app, db)
 
-# ما نحتاج db.create_all() بعد الآن (خليه مش مُفعل)
-# with app.app_context():
-#     db.create_all()
+# مسار حفظ الصور
+IMAGE_UPLOAD_FOLDER = "/mnt/c/Users/hanee/OneDrive/Desktop/naqaha/static/images"
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+app.config["UPLOAD_FOLDER"] = IMAGE_UPLOAD_FOLDER
 
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # ------------------- الصفحات -------------------
-
 @app.route('/')
 def portal_choice():
     return render_template('home.html')
@@ -47,10 +51,6 @@ def login():
         else:
             flash("البريد أو كلمة السر خاطئة!", "danger")
     return render_template('login.html')
-
-
-
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -87,7 +87,6 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html')
-
 
 # ------------------- بوابة الشركات -------------------
 @app.route('/company')
@@ -141,10 +140,11 @@ def admin_login():
         if admin and check_password_hash(admin.password, password):
             session['admin_id'] = admin.id
             flash("تم تسجيل دخول الأدمن!", "success")
-            return redirect(url_for('admin_dashboard'))
+            return redirect(url_for('add_package'))
         else:
             flash("البريد أو كلمة السر خاطئة!", "danger")
     return render_template('admin_login.html')
+
 @app.route('/admin_register', methods=['GET', 'POST'])
 def admin_register():
     if request.method == 'POST':
@@ -169,6 +169,54 @@ def logout():
     session.clear()
     flash("تم تسجيل الخروج.", "info")
     return redirect(url_for('portal_choice'))
+
+# ------------------- الصفحات العامة -------------------
+@app.route('/custom-plan')
+def custom_plan():
+    return render_template('custom_plan.html')
+
+@app.route('/consult-doctor')
+def consult_doctor():
+    return render_template('consult_doctor.html')
+
+@app.route('/recreation')
+def recreation():   
+    return render_template('recreation.html')
+
+# ------------------- صفحة الباقات الجاهزة -------------------
+@app.route('/ready-packages')
+def ready_packages():
+    all_packages = Package.query.all()
+    return render_template('ready_packages.html', packages=all_packages)
+
+# ------------------- إضافة باقة جديدة -------------------
+@app.route("/add_package", methods=["GET", "POST"])
+def add_package():
+    if request.method == "POST":
+        title = request.form["title"]
+        description = request.form["description"]
+
+        file = request.files["image"]
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
+
+            new_package = Package(
+                title=title,
+                description=description,
+                image=filename
+            )
+            db.session.add(new_package)
+            db.session.commit()
+
+            flash("تمت إضافة الباقة بنجاح!", "success")
+            return redirect(url_for("ready_packages"))  # بعد إضافة الباقة، ارجع للصفحة الجاهزة
+
+        else:
+            flash("صيغة الصورة غير مدعومة", "danger")
+
+    return render_template("add_package.html")
 
 if __name__ == '__main__':
     app.run(debug=True)

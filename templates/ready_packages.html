@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="packages-section">
+  <h1 class="section-title">الباقات الجاهزة</h1>
+  <div class="packages-container">
+    {% if packages %}
+      {% for package in packages %}
+        <div class="package-card">
+          <img src="{{ url_for('static', filename='images/' ~ package.image) }}" 
+               alt="{{ package.title }}">
+          <div class="overlay">
+            <h2>{{ package.title }}</h2>
+            <p>{{ package.description }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="no-packages">لا توجد باقات جاهزة حالياً.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

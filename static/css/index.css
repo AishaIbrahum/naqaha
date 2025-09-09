@@ -1392,6 +1392,18 @@ body {
 scroll-margin-top: 100px; /* اضبط الرقم حسب ارتفاع الـ Navbar */
 }
 
+@font-face {
+    font-family: 'SaudiRiyal';
+    src: url('../fonts/saudiriyalsymbol.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.icon-saudi_riyal::before {
+    content: '\ea'; 
+    font-family: 'SaudiRiyal';
+}
+
 
 /* Responsive */
 @media (max-width: 768px) {

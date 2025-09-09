@@ -14,6 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet"/>
     <link href="/node_modules/@abdulrysr/saudi-riyal-new-symbol-font/style.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
 </head>
 <body>
 
@@ -92,17 +93,17 @@
     </button>
 
     <!-- روابط القائمة -->
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav d-flex flex-row gap-3 mx-auto">
-        <li class="nav-item"><a class="nav-link active" href="#home">الرئيسية</a></li>
-        <li class="nav-item"><a class="nav-link" href="#services">من نحن</a></li>
-        <li class="nav-item"><a class="nav-link" href="#departments">الحزم الجاهزة</a></li>
-        <li class="nav-item"><a class="nav-link" href="#doctors">اصنع خطتك</a></li>
-        <li class="nav-item"><a class="nav-link" href="#gallery">استشر طبيب</a></li>
-        <li class="nav-item"><a class="nav-link" href="#testimonials">آراء العملاء</a></li>
-        <li class="nav-item"><a class="nav-link" href="#contact">اتصل بنا</a></li>
-      </ul>
-    </div>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav d-flex flex-row gap-3 mx-auto">
+            <li class="nav-item"><a class="nav-link active" href="{{ url_for('individual_index') }}">الرئيسية</a></li>
+            <li class="nav-item"><a class="nav-link" href="#services">من نحن</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('ready_packages') }}">الحزم الجاهزة</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('custom_plan') }}">اصنع خطتك</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('consult_doctor') }}">استشر طبيب</a></li>
+            <li class="nav-item"><a class="nav-link" href="#testimonials">آراء العملاء</a></li>
+            <li class="nav-item"><a class="nav-link" href="#contact">اتصل بنا</a></li>
+          </ul>
+        </div>
 
   </div>
 </nav>
@@ -213,7 +214,7 @@
                 <div class="feature-box">
                     
                     <div class="feature-icon-box">
-                         <i class="icon-saudi_riyal">&#xea;</i>
+                         <i class="icon-saudi_riyal"></i>
                     </div>
                     <h3 class="feature-title">أسعار تنافسية</h3>
                     <p>باقات وعروض مناسبة لجميع الفئات مع خطط دفع مرنة</p>
@@ -255,7 +256,6 @@
                 </h2>
                 <p class="lead text-muted mb-0" data-aos="fade-up" data-aos-delay="200">
                     نقدم العديد من الخدمات التي تلبي احتياجات المرضى المختلفة، والمصممة خصيصًا لتقديم تجربة مميزة لهم.
-
                 </p>
             </div>
         </div>
@@ -264,9 +264,10 @@
         <div class="row justify-content-center">
             <div class="col-lg-8 col-md-10">
                 <div class="service-buttons-container" data-aos="fade-up" data-aos-delay="300">
+
                     <!-- Ready Packages Button -->
                     <div class="service-option" data-aos="fade-right" data-aos-delay="400">
-                        <button class="service-btn ready-packages-btn" onclick="selectService('ready-packages')">
+                        <a href="{{ url_for('ready_packages') }}" class="service-btn ready-packages-btn">
                             <div class="btn-content">
                                 <div class="btn-icon">
                                     <i class="bi bi-box-seam"></i>
@@ -283,12 +284,12 @@
                             <div class="btn-badge popular">الأكثر طلباً</div>
                             <div class="btn-glow-effect"></div>
                             <div class="btn-ripple"></div>
-                        </button>
+                        </a>
                     </div>
 
                     <!-- Custom Package Button -->
                     <div class="service-option" data-aos="fade-left" data-aos-delay="500">
-                        <button class="service-btn custom-package-btn" onclick="selectService('custom-package')">
+                        <a href="{{ url_for('custom_plan') }}" class="service-btn custom-package-btn">
                             <div class="btn-content">
                                 <div class="btn-icon">
                                     <i class="bi bi-gear-fill"></i>
@@ -305,12 +306,12 @@
                             <div class="btn-badge premium">مميزة</div>
                             <div class="btn-glow-effect"></div>
                             <div class="btn-ripple"></div>
-                        </button>
+                        </a>
                     </div>
 
                     <!-- Recreation Button -->
                     <div class="service-option" data-aos="fade-right" data-aos-delay="600">
-                        <button class="service-btn recreation-btn" onclick="selectService('recreation')">
+                        <a href="{{ url_for('recreation') }}" class="service-btn recreation-btn">
                             <div class="btn-content">
                                 <div class="btn-icon">
                                     <i class="bi bi-tree-fill"></i>
@@ -327,43 +328,299 @@
                             <div class="btn-badge relaxing">مريح</div>
                             <div class="btn-glow-effect"></div>
                             <div class="btn-ripple"></div>
-                        </button>
+                        </a>
                     </div>
-                </div>
 
-                <!-- Service Features Preview -->
-                <div class="service-features-preview mt-5" data-aos="fade-up" data-aos-delay="700">
-                    <div class="row g-3">
-                        <div class="col-md-4 text-center">
-                            <div class="feature-preview-item">
-                                <div class="feature-icon-small">
-                                    <i class="bi bi-shield-check"></i>
-                                </div>
-                                <span>ضمان الجودة</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <div class="feature-preview-item">
-                                <div class="feature-icon-small">
-                                    <i class="bi bi-clock-history"></i>
-                                </div>
-                                <span>متابعة دائمة</span>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <div class="feature-preview-item">
-                                <div class="feature-icon-small">
-                                    <i class="bi bi-heart-pulse"></i>
-                                </div>
-                                <span>رعاية متكاملة</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<style>
+/* Enhanced Service Selection Section Styles */
+.service-selection-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Service Buttons Container */
+.service-buttons-container {
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+}
+
+/* Service Options */
+.service-option {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.service-option:last-child {
+    margin-bottom: 0;
+}
+
+/* Service Buttons - Fixed for Links */
+.service-btn {
+    display: block;
+    width: 100%;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    padding: 1.5rem 2rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none !important;
+    color: inherit !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.service-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    border-color: #48b4bb;
+    text-decoration: none !important;
+}
+
+/* Button Content Layout */
+.btn-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+/* Button Icons */
+.btn-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    transition: all 0.4s ease;
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* Icon Colors */
+.ready-packages-btn .btn-icon { 
+    background: linear-gradient(135deg, #48b4bb, #6bc4c9); 
+}
+
+.custom-package-btn .btn-icon { 
+    background: linear-gradient(135deg, #fd7e14, #ff922b); 
+}
+
+.recreation-btn .btn-icon { 
+    background: linear-gradient(135deg, #20c997, #6bcf7f); 
+}
+
+.service-btn:hover .btn-icon {
+    transform: rotate(5deg) scale(1.05);
+}
+
+/* Icon Pulse Effect */
+.icon-pulse {
+    position: absolute;
+    inset: -5px;
+    border-radius: 23px;
+    background: currentColor;
+    opacity: 0.3;
+    animation: iconPulseAnim 2s ease-in-out infinite;
+}
+
+@keyframes iconPulseAnim {
+    0%, 100% { 
+        transform: scale(1); 
+        opacity: 0.3; 
+    }
+    50% { 
+        transform: scale(1.1); 
+        opacity: 0.1; 
+    }
+}
+
+/* Button Text */
+.btn-text {
+    flex: 1;
+    text-align: right;
+}
+
+.btn-text h3 { 
+    margin: 0 0 0.3rem 0; 
+    color: #2d3436; 
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.btn-text p { 
+    margin: 0; 
+    color: #636e72; 
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Button Arrow */
+.btn-arrow {
+    color: #48b4bb;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.service-btn:hover .btn-arrow {
+    transform: translateX(-5px);
+}
+
+/* Badges */
+.btn-badge {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: #48b4bb;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    z-index: 3;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+.btn-badge.popular { 
+    background: linear-gradient(135deg, #48b4bb, #6bc4c9); 
+}
+
+.btn-badge.premium { 
+    background: linear-gradient(135deg, #fd7e14, #ff922b); 
+}
+
+.btn-badge.relaxing { 
+    background: linear-gradient(135deg, #20c997, #6bcf7f); 
+}
+
+/* Glow Effect */
+.btn-glow-effect {
+    position: absolute;
+    inset: 0;
+    border-radius: 25px;
+    background: linear-gradient(135deg, rgba(72, 180, 187, 0.05), rgba(107, 196, 201, 0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.service-btn:hover .btn-glow-effect {
+    opacity: 1;
+}
+
+/* Background Elements */
+.service-bg-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.service-floating-shape {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(72, 180, 187, 0.1), rgba(107, 196, 201, 0.1));
+    animation: floatShape 8s ease-in-out infinite;
+}
+
+.service-floating-shape.shape-1 {
+    width: 100px;
+    height: 100px;
+    top: 10%;
+    left: 15%;
+    animation-delay: -2s;
+}
+
+.service-floating-shape.shape-2 {
+    width: 150px;
+    height: 150px;
+    top: 70%;
+    right: 20%;
+    animation-delay: -4s;
+}
+
+.service-floating-shape.shape-3 {
+    width: 80px;
+    height: 80px;
+    top: 40%;
+    left: 10%;
+    animation-delay: -1s;
+}
+
+.service-floating-shape.shape-4 {
+    width: 120px;
+    height: 120px;
+    bottom: 20%;
+    right: 10%;
+    animation-delay: -3s;
+}
+
+@keyframes floatShape {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg) scale(1); 
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-30px) rotate(180deg) scale(1.1); 
+        opacity: 0.6;
+    }
+}
+
+/* Section Badge */
+.section-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #48b4bb, #6bc4c9);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 5px 15px rgba(72, 180, 187, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .service-btn {
+        padding: 1.2rem 1.5rem;
+    }
+    
+    .btn-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+    
+    .btn-text h3 {
+        font-size: 1.1rem;
+    }
+    
+    .btn-text p {
+        font-size: 0.85rem;
+    }
+    
+    .btn-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.6rem;
+    }
+}
+</style>
+
 <!-- Doctors Section -->
 <section class="doctors-section" id="doctors">
     <div class="container">
