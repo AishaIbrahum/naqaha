@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, session
-from models import db, User, Company, Admin, Package
+from models import db, User, Company, Admin, Package, Appointment, DoctorMessage, PaymentPlan, HealthCard
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_migrate import Migrate
@@ -219,6 +219,38 @@ def add_package():
             flash("صيغة الصورة غير مدعومة", "danger")
 
     return render_template("add_package.html")
+
+@app.route('/appointments')
+def appointments():
+    user_id = session.get("user_id", 1)  # مؤقتاً
+    appointments = Appointment.query.filter_by(user_id=user_id).all()
+    return render_template('appointments.html', appointments=appointments)
+
+@app.route('/contact_doctors')
+def contact_doctors():
+    return render_template('contact_doctors.html')
+
+@app.route('/profile')
+def profile():
+    user_id = session.get("user_id", 1)
+    user = User.query.get(user_id)
+    return render_template('profile.html', user=user)
+
+@app.route('/settings')
+def settings():
+    return render_template('settings.html')
+
+@app.route('/invoices')
+def invoices():
+    user_id = session.get("user_id", 1)
+    invoices = Invoice.query.filter_by(user_id=user_id).all()
+    return render_template('invoices.html', invoices=invoices)
+
+@app.route('/health_card')
+def health_card():
+    user_id = session.get("user_id", 1)
+    card = HealthCard.query.filter_by(user_id=user_id).first()
+    return render_template('health_card.html', card=card)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>مواعيدي</h2>
+<ul>
+  {% for a in appointments %}
+    <li>{{ a.date.strftime("%Y-%m-%d %H:%M") }} - {{ a.doctor }} ({{ a.notes }})</li>
+  {% else %}
+    <p>لا توجد مواعيد.</p>
+  {% endfor %}
+</ul>
+{% endblock %}

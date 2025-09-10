@@ -71,12 +71,14 @@
             </div>
           </li>
           <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-check"></i>مواعيدي</a></li>
-          <li><a class="dropdown-item" href="#"><i class="fas fa-user-md"></i>تواصلي مع الأطباء</a></li>
-          <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i>معلوماتي الشخصية</a></li>
-          <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> الأعداد</a></li>
-          <li><a class="dropdown-item" href="#"><i class="fas fa-credit-card"></i>الفواتير وخطط الدفع</a></li>
-          <li><a class="dropdown-item" href="#"><i class="fas fa-address-card"></i>بطاقتي الصحية</a></li>
+
+
+          <li><a class="dropdown-item" href="{{ url_for('appointments') }}"><i class="fas fa-calendar-check"></i>مواعيدي</a></li>
+          <li><a class="dropdown-item" href="{{ url_for('contact_doctors') }}"><i class="fas fa-user-md"></i>تواصلي مع الأطباء</a></li>
+          <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user"></i>معلوماتي الشخصية</a></li>
+          <li><a class="dropdown-item" href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> الأعداد</a></li>
+          <li><a class="dropdown-item" href="{{ url_for('invoices') }}"><i class="fas fa-credit-card"></i>الفواتير وخطط الدفع</a></li>
+          <li><a class="dropdown-item" href="{{ url_for('health_card') }}"><i class="fas fa-address-card"></i>بطاقتي الصحية</a></li>
           <li>
             <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
                 <i class="fas fa-sign-out-alt"></i> تسجيل خروج
@@ -96,12 +98,12 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav d-flex flex-row gap-3 mx-auto">
             <li class="nav-item"><a class="nav-link active" href="{{ url_for('individual_index') }}">الرئيسية</a></li>
-            <li class="nav-item"><a class="nav-link" href="#services">من نحن</a></li>
+            <li class="nav-item"><a class="nav-link" href="#stats">من نحن</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('ready_packages') }}">الحزم الجاهزة</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('custom_plan') }}">اصنع خطتك</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('recreation') }}">برامج الاستجمام</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('consult_doctor') }}">استشر طبيب</a></li>
-            <li class="nav-item"><a class="nav-link" href="#testimonials">آراء العملاء</a></li>
-            <li class="nav-item"><a class="nav-link" href="#contact">اتصل بنا</a></li>
+            <li class="nav-item"><a class="nav-link" href="#footer">اتصل بنا</a></li>
           </ul>
         </div>
 
@@ -138,7 +140,7 @@
     </div>
 </section>
 <!-- Stats Section -->
-<div class="container">
+<div class="container" id="stats">
     <div class="stats-section">
         <div class="row">
             <div class="col-md-3 col-6">
@@ -919,7 +921,7 @@
 </section>
 
 <!-- Footer -->
-<footer class="footer">
+<footer class="footer" id="footer">
     <div class="container">
         <div class="row g-4">
             <div class="col-lg-4">

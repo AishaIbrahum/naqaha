@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>بطاقتي الصحية</h2>
+{% if card %}
+<p>فصيلة الدم: {{ card.blood_type }}</p>
+<p>الحساسية: {{ card.allergies }}</p>
+<p>الأمراض المزمنة: {{ card.chronic_diseases }}</p>
+{% else %}
+<p>لم يتم إدخال بيانات البطاقة.</p>
+{% endif %}
+{% endblock %}

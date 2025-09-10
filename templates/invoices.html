@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>الفواتير</h2>
+<table>
+  <tr><th>المبلغ</th><th>الحالة</th><th>التاريخ</th></tr>
+  {% for i in invoices %}
+  <tr>
+    <td>{{ i.amount }} ريال</td>
+    <td>{{ i.status }}</td>
+    <td>{{ i.date.strftime("%Y-%m-%d") }}</td>
+  </tr>
+  {% else %}
+    <tr><td colspan="3">لا توجد فواتير</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
