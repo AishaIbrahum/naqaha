@@ -1,5 +1,176 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>تواصلي مع الأطباء</h2>
-<p>هنا يمكنك مراسلة الأطباء أو رفع ملفات لهم.</p>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تواصل مع الطبيب - عائشة إبراهيم</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/contact_doctors.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="profile-pic">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%23667eea'/%3E%3Ctext x='40' y='50' text-anchor='middle' fill='white' font-size='24' font-weight='bold'%3Eع%3C/text%3E%3C/svg%3E" alt="عائشة إبراهيم">
+            </div>
+            <h1 class="user-name">عائشة إبراهيم</h1>
+            <p class="page-title">💬 تواصل مع الطبيب</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <div class="chat-header">
+                    <div class="doctor-avatar">د</div>
+                    <div class="doctor-info">
+                        <div class="doctor-name">د. أحمد محمد</div>
+                        <div class="doctor-status">
+                            <div class="status-dot"></div>
+                            متاح الآن
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="action-btn" title="مكالمة صوتية">
+                            <i class="fas fa-phone"></i>
+                        </button>
+                        <button class="action-btn" title="مكالمة فيديو">
+                            <i class="fas fa-video"></i>
+                        </button>
+                        <button class="action-btn" title="المزيد">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message message-received">
+                        <div>أهلاً وسهلاً عائشة، كيف يمكنني مساعدتك اليوم؟</div>
+                        <div class="message-time">9:30 ص</div>
+                    </div>
+                    
+                    <div class="message message-sent">
+                        <div>صباح الخير دكتور، أشعر ببعض الألم في الصدر منذ أمس</div>
+                        <div class="message-time">9:32 ص</div>
+                    </div>
+                    
+                    <div class="message message-received">
+                        <div>أفهم قلقك، هل يمكنك وصف طبيعة الألم؟ هل هو مستمر أم متقطع؟</div>
+                        <div class="message-time">9:33 ص</div>
+                    </div>
+                    
+                    <div class="message message-sent">
+                        <div>إنه متقطع ويزداد عند التنفس العميق</div>
+                        <div class="message-time">9:35 ص</div>
+                    </div>
+                    
+                    <div class="message message-received">
+                        <div>شكراً للمعلومات. أنصحك بزيارة العيادة لإجراء فحص مفصل. هل تريدين حجز موعد؟</div>
+                        <div class="message-time">9:36 ص</div>
+                    </div>
+
+                    <div class="typing-indicator" id="typingIndicator">
+                        <span>الطبيب يكتب</span>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-section">
+                    <div class="chat-input-container">
+                        <button class="action-btn" title="إرفاق ملف">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <input type="text" class="chat-input" placeholder="اكتب رسالتك هنا..." id="messageInput">
+                        <button class="send-btn" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="section-title">
+                        <i class="fas fa-bolt"></i>
+                        إجراءات سريعة
+                    </div>
+                    <button class="quick-action-btn" onclick="quickAction('appointment')">
+                        <i class="fas fa-calendar-plus"></i>
+                        حجز موعد سريع
+                    </button>
+                    <button class="quick-action-btn" onclick="quickAction('prescription')">
+                        <i class="fas fa-prescription-bottle"></i>
+                        طلب وصفة طبية
+                    </button>
+                    <button class="quick-action-btn" onclick="quickAction('results')">
+                        <i class="fas fa-file-medical"></i>
+                        نتائج التحاليل
+                    </button>
+                    <button class="quick-action-btn" onclick="quickAction('report')">
+                        <i class="fas fa-chart-line"></i>
+                        التقرير الطبي
+                    </button>
+                </div>
+
+                <!-- Doctors List -->
+                <div class="doctors-list">
+                    <div class="section-title">
+                        <i class="fas fa-user-md"></i>
+                        أطبائي
+                    </div>
+                    
+                    <div class="doctor-item active" onclick="switchDoctor(this, 'د. أحمد محمد')">
+                        <div class="doctor-avatar">أ</div>
+                        <div>
+                            <div class="doctor-name">د. أحمد محمد</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">أخصائي القلب</div>
+                        </div>
+                    </div>
+                    
+                    <div class="doctor-item" onclick="switchDoctor(this, 'د. فاطمة العلي')">
+                        <div class="doctor-avatar">ف</div>
+                        <div>
+                            <div class="doctor-name">د. فاطمة العلي</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">طبيبة عامة</div>
+                        </div>
+                    </div>
+                    
+                    <div class="doctor-item" onclick="switchDoctor(this, 'د. سارة الجهني')">
+                        <div class="doctor-avatar">س</div>
+                        <div>
+                            <div class="doctor-name">د. سارة الجهني</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.7);">نساء وولادة</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Section -->
+                <div class="emergency-section">
+                    <div class="section-title" style="color: #fca5a5; margin-bottom: 15px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        حالة طوارئ؟
+                    </div>
+                    <button class="emergency-btn" onclick="emergency()">
+                        <i class="fas fa-ambulance"></i>
+                        اتصال طوارئ
+                    </button>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin-top: 10px;">
+                        للحالات الطارئة اتصل بالرقم 997
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+ <script src="{{ url_for('static', filename='js/contact_doctors.js') }}"></script>
 {% endblock %}
