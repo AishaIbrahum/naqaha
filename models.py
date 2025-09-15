@@ -2,35 +2,37 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
-
 db = SQLAlchemy()
 
-# جدول المستخدمين (الأفراد)
+# -------------------- جدول المستخدمين --------------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False, unique=True)
+    email = db.Column(db.String(120), nullable=False, unique=True)
+    password = db.Column(db.String(200), nullable=False)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    phone = db.Column(db.String(20), nullable=False, unique=True)
+    gender = db.Column(db.String(10))
+    country = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+    address = db.Column(db.String(200))
+    birth_date = db.Column(db.Date)
+    profile_picture = db.Column(db.String(200), default="default.jpg")
 
-    # البيانات الأساسية
-    username = db.Column(db.String(80), nullable=False, unique=True)   # اسم المستخدم
-    email = db.Column(db.String(120), nullable=False, unique=True)     # البريد
-    password = db.Column(db.String(200), nullable=False)               # كلمة المرور
-
-    # بيانات إضافية
-    first_name = db.Column(db.String(50), nullable=False)              # الاسم الأول
-    last_name = db.Column(db.String(50), nullable=False)               # الاسم الأخير
-    phone = db.Column(db.String(20), nullable=False, unique=True)      # رقم الجوال (مطلوب ومميز)
-
-    gender = db.Column(db.String(10), nullable=True)                   # الجنس (اختياري: ذكر/أنثى/غير ذلك)
-    country = db.Column(db.String(100), nullable=True)                 # البلد (اختياري)
-    city = db.Column(db.String(100), nullable=True)                    # المدينة (اختياري)
-    address = db.Column(db.String(200), nullable=True)                 # العنوان التفصيلي (اختياري)
-
-    birth_date = db.Column(db.Date, nullable=True)                     # تاريخ الميلاد (اليوم/الشهر/السنة)
+    appointments = db.relationship("Appointment", backref="user", lazy=True)
+    messages = db.relationship("DoctorMessage", backref="user", lazy=True)
+    payment_plans = db.relationship("PaymentPlan", backref="user", lazy=True)
+    health_cards = db.relationship("HealthCard", backref="user", lazy=True)
+    bookings = db.relationship("Booking", backref="user", lazy=True)
+    invoices = db.relationship("Invoice", backref="user", lazy=True)
+    consultations = db.relationship("Consultation", backref="user", lazy=True)
+    notifications = db.relationship("Notification", backref="user", lazy=True)
+    medical_reports = db.relationship("MedicalReport", backref="user", lazy=True)
 
 
-# جدول الشركات
+# -------------------- جدول الشركات --------------------
 class Company(db.Model):
-    __tablename__ = 'company'
-    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False, unique=True)
     email = db.Column(db.String(120), nullable=False, unique=True)
@@ -38,44 +40,87 @@ class Company(db.Model):
     address = db.Column(db.String(200))
     phone = db.Column(db.String(20))
 
+    doctors = db.relationship("Doctor", backref="company", lazy=True)
+    packages = db.relationship("Package", backref="provider", lazy=True)
     appointments = db.relationship("Appointment", backref="company", lazy=True)
+    bookings = db.relationship("Booking", backref="company", lazy=True)
+    notifications = db.relationship("Notification", backref="company", lazy=True)
 
 
-# جدول الـ Admin
+# -------------------- جدول الأدمن --------------------
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
 
+    approved_doctors = db.relationship("Doctor", backref="approved_by_admin", lazy=True)
+    approved_packages = db.relationship("Package", backref="approved_by_admin", lazy=True)
+    actions = db.relationship("AdminAction", backref="admin", lazy=True)
+
+
+# -------------------- جدول الأطباء --------------------
+class Doctor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    specialty = db.Column(db.String(100))
+    profile_picture = db.Column(db.String(200))
+    status = db.Column(db.String(50), default="pending")  # pending / approved / rejected
+    approved_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
+
+    messages = db.relationship("DoctorMessage", backref="doctor", lazy=True)
+    appointments = db.relationship("Appointment", backref="doctor_obj", lazy=True)
+    consultations = db.relationship("Consultation", backref="doctor", lazy=True)
+    medical_reports = db.relationship("MedicalReport", backref="doctor", lazy=True)
+
+
+# -------------------- جدول الباقات --------------------
 class Package(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100))
     description = db.Column(db.Text)
     image = db.Column(db.String(200))
+    provider_id = db.Column(db.Integer, db.ForeignKey('company.id'))
+    approved_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
+    status = db.Column(db.String(50), default="pending")  # pending / approved / rejected
 
-#profile_picture = db.Column(db.String(200), default="default.jpg") عشان تشتغل صح لازم يكون جزء من جدول، غالبًا User.
+    services = db.relationship("PackageService", backref="package", lazy=True)
+    bookings = db.relationship("Booking", backref="package", lazy=True)
 
 
+# -------------------- جدول خدمات الباقات --------------------
+class PackageService(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    package_id = db.Column(db.Integer, db.ForeignKey('package.id'))
+    service_name = db.Column(db.String(100))
+    service_description = db.Column(db.Text)
+    service_price = db.Column(db.Float)
+
+
+# -------------------- جدول المواعيد --------------------
 class Appointment(db.Model):
-    __tablename__ = 'Appointment'
-    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    doctor = db.Column(db.String(100), nullable=False)
     notes = db.Column(db.Text)
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey("doctor.id"), nullable=True)
     company_id = db.Column(db.Integer, db.ForeignKey("company.id"), nullable=False)
 
+    bookings = db.relationship("Booking", backref="appointment", lazy=True)
+    medical_reports = db.relationship("MedicalReport", backref="appointment", lazy=True)
 
+
+# -------------------- جدول رسائل الطبيب --------------------
 class DoctorMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    doctor_name = db.Column(db.String(100))
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'))
     message = db.Column(db.Text)
-    timestamp = db.Column(db.DateTime)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# -------------------- جدول خطط الدفع --------------------
 class PaymentPlan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -84,11 +129,99 @@ class PaymentPlan(db.Model):
     status = db.Column(db.String(50))  # مدفوع / غير مدفوع
 
 
+# -------------------- جدول بطاقة الصحة --------------------
 class HealthCard(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     card_number = db.Column(db.String(50))
     issued_date = db.Column(db.Date)
     expiry_date = db.Column(db.Date)
 
 
+# -------------------- جدول الحجز المرتبط بالباقة --------------------
+class Booking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    package_id = db.Column(db.Integer, db.ForeignKey('package.id'), nullable=False)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=True)
+    requested_at = db.Column(db.DateTime, default=datetime.utcnow)
+    scheduled_for = db.Column(db.DateTime, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(50), default="pending")
+
+    invoices = db.relationship('Invoice', backref='booking', lazy=True)
+    consultations = db.relationship('Consultation', backref='booking', lazy=True)
+    medical_reports = db.relationship('MedicalReport', backref='booking', lazy=True)
+
+
+# -------------------- جدول الفواتير --------------------
+class Invoice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    currency = db.Column(db.String(10), default='SAR')
+    status = db.Column(db.String(50), default='unpaid')
+    issued_at = db.Column(db.DateTime, default=datetime.utcnow)
+    paid_at = db.Column(db.DateTime, nullable=True)
+    details = db.Column(db.Text, nullable=True)
+
+    payments = db.relationship('Payment', backref='invoice', lazy=True)
+
+
+# -------------------- جدول الاستشارات --------------------
+class Consultation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=True)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    consultation_type = db.Column(db.String(50), default='chat')
+    duration_minutes = db.Column(db.Integer, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(50), default='pending')
+
+
+# -------------------- جدول التقارير الطبية --------------------
+class MedicalReport(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=True)
+    file_path = db.Column(db.String(300), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# -------------------- جدول المدفوعات --------------------
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.id'), nullable=False)
+    method = db.Column(db.String(50))
+    transaction_id = db.Column(db.String(200), nullable=True)
+    amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(50), default='completed')
+    paid_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# -------------------- جدول الإشعارات --------------------
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=True)
+    title = db.Column(db.String(200))
+    body = db.Column(db.String(500))
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# -------------------- جدول إجراءات الأدمن --------------------
+class AdminAction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=False)
+    action_type = db.Column(db.String(100))
+    target_table = db.Column(db.String(100), nullable=True)
+    target_id = db.Column(db.Integer, nullable=True)
+    details = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
