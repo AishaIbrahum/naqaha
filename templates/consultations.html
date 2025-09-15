@@ -1,0 +1,33 @@
+<h2>استشاراتي</h2>
+<table border="1">
+    <tr>
+        <th>الطبيب</th>
+        <th>نوع الاستشارة</th>
+        <th>التاريخ</th>
+        <th>الحالة</th>
+        <th>إجراءات</th>
+    </tr>
+    {% for c in consultations %}
+    <tr>
+        <td>
+            {% if c.doctor %}
+                {{ c.doctor.name }}
+            {% else %}
+                غير محدد
+            {% endif %}
+        </td>
+        <td>{{ c.consultation_type }}</td>
+        <td>{{ c.date.strftime("%Y-%m-%d %H:%M") if c.date else "غير محدد" }}</td>
+        <td>{{ c.status }}</td>
+        <td>
+            {% if c.doctor %}
+                <a href="{{ url_for('schedule_consultation', doctor_id=c.doctor.id) }}">جدولة جديدة</a>
+            {% else %}
+                لا يمكن الجدولة
+            {% endif %}
+        </td>
+    </tr>
+    {% else %}
+        <tr><td colspan="5">لا توجد استشارات</td></tr>
+    {% endfor %}
+</table>

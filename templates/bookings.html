@@ -1,0 +1,21 @@
+<h2>الحجوزات الخاصة بي</h2>
+<table border="1">
+    <tr>
+        <th>الباقة</th>
+        <th>الشركة</th>
+        <th>التاريخ</th>
+        <th>الحالة</th>
+        <th>إجراءات</th>
+    </tr>
+    {% for booking in bookings %}
+    <tr>
+        <td>{{ booking.package.title }}</td>
+        <td>{{ booking.company.name }}</td>
+        <td>{{ booking.scheduled_for }}</td>
+        <td>{{ booking.status }}</td>
+        <td>
+            <a href="{{ url_for('book_package', package_id=booking.package.id) }}">تعديل / حجز جديد</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>

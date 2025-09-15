@@ -1,0 +1,15 @@
+<h2>سجل نشاط الأدمن</h2>
+<table border="1">
+    <tr>
+        <th>الإجراء</th>
+        <th>التاريخ</th>
+        <th>الوصف</th>
+    </tr>
+    {% for action in actions %}
+    <tr>
+        <td>{{ action.action_type }}</td>
+        <td>{{ action.created_at }}</td>
+        <td>{{ action.description }}</td>
+    </tr>
+    {% endfor %}
+</table>

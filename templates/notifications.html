@@ -1,0 +1,21 @@
+<h2>الإشعارات</h2>
+<table border="1">
+    <tr>
+        <th>الرسالة</th>
+        <th>التاريخ</th>
+        <th>الحالة</th>
+        <th>إجراءات</th>
+    </tr>
+    {% for notif in notifications %}
+    <tr>
+        <td>{{ notif.message }}</td>
+        <td>{{ notif.created_at }}</td>
+        <td>{{ 'مقروء' if notif.is_read else 'جديد' }}</td>
+        <td>
+            {% if not notif.is_read %}
+            <a href="{{ url_for('mark_notification_read', notification_id=notif.id) }}">تعليم كمقروء</a>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>

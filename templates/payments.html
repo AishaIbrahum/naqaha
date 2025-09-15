@@ -1,0 +1,27 @@
+<h2>المدفوعات</h2>
+<table border="1">
+    <tr>
+        <th>الفاتورة</th>
+        <th>المبلغ</th>
+        <th>طريقة الدفع</th>
+        <th>الحالة</th>
+        <th>إجراءات</th>
+    </tr>
+    {% for payment in payments %}
+    <tr>
+        <td>{{ payment.invoice.id }}</td>
+        <td>{{ payment.amount }}</td>
+        <td>{{ payment.method }}</td>
+        <td>{{ payment.status }}</td>
+        <td>
+            {% if payment.status != 'completed' %}
+            <form action="{{ url_for('make_payment', invoice_id=payment.invoice.id) }}" method="POST">
+                <input type="hidden" name="amount" value="{{ payment.amount }}">
+                <input type="hidden" name="method" value="card">
+                <button type="submit">دفع الآن</button>
+            </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>

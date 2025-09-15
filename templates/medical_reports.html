@@ -1,0 +1,21 @@
+<h2>التقارير الطبية</h2>
+<table border="1">
+    <tr>
+        <th>اسم التقرير</th>
+        <th>الحجز المرتبط</th>
+        <th>ملاحظات</th>
+        <th>تاريخ الإنشاء</th>
+        <th>إجراءات</th>
+    </tr>
+    {% for report in reports %}
+    <tr>
+        <td>{{ report.file_path }}</td>
+        <td>{{ report.booking_id }}</td>
+        <td>{{ report.notes }}</td>
+        <td>{{ report.created_at }}</td>
+        <td>
+            <a href="{{ url_for('upload_report') }}">رفع تقرير جديد</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
