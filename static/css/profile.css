@@ -1,0 +1,58 @@
+body {
+  font-family: 'Tajawal', sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+.container {
+  width: 90%;
+  max-width: 1000px;
+  margin: 30px auto;
+}
+
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.card h2 {
+  margin-bottom: 15px;
+  font-size: 22px;
+  color: #1c3c6b;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-pic {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid #1c3c6b;
+}
+
+.appointments-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.appointments-card li {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.appointments-card li:last-child {
+  border-bottom: none;
+}
+
+.empty {
+  color: #777;
+  font-style: italic;
+}

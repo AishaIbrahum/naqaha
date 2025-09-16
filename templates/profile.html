@@ -1,6 +1,31 @@
 {% extends "base.html" %}
-{% block content %}
-<h2>معلوماتي الشخصية</h2>
-<p>الاسم: {{ user.username }}</p>
-<p>الإيميل: {{ user.email }}</p>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>معلوماتي الشخصية</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+</head>
+<body>
+
+  <div class="container">
+    <section class="card profile-card">
+      <h2>معلوماتي الشخصية</h2>
+      <div class="profile-info">
+        <img src="{{ url_for('static', filename='images/default.jpg') }}" alt="الصورة الشخصية" class="profile-pic">
+        <div>
+          <p><strong>الاسم:</strong> {{ user.username }}</p>
+          <p><strong>الإيميل:</strong> {{ user.email }}</p>
+          <p><strong>رقم الهاتف:</strong> {{ user.phone or 'غير متوفر' }}</p>
+          <p><strong>المدينة:</strong> {{ user.city or 'غير محدد' }}</p>
+          <p><strong>الدولة:</strong> {{ user.country or 'غير محدد' }}</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+</body>
+</html>
+
 {% endblock %}
