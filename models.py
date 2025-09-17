@@ -1,5 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 db = SQLAlchemy()
@@ -64,7 +63,7 @@ class Doctor(db.Model):
     name = db.Column(db.String(100), nullable=False)
     specialty = db.Column(db.String(100))
     profile_picture = db.Column(db.String(200))
-    status = db.Column(db.String(50), default="pending")  # pending / approved / rejected
+    status = db.Column(db.String(50), default="pending")
     approved_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
 
@@ -82,7 +81,7 @@ class Package(db.Model):
     image = db.Column(db.String(200))
     provider_id = db.Column(db.Integer, db.ForeignKey('company.id'))
     approved_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
-    status = db.Column(db.String(50), default="pending")  # pending / approved / rejected
+    status = db.Column(db.String(50), default="pending")
 
     services = db.relationship("PackageService", backref="package", lazy=True)
     bookings = db.relationship("Booking", backref="package", lazy=True)
@@ -126,7 +125,7 @@ class PaymentPlan(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     plan_name = db.Column(db.String(100))
     amount = db.Column(db.Float)
-    status = db.Column(db.String(50))  # مدفوع / غير مدفوع
+    status = db.Column(db.String(50))
 
 
 # -------------------- جدول بطاقة الصحة --------------------
@@ -137,7 +136,7 @@ class HealthCard(db.Model):
     expiry_date = db.Column(db.Date)
 
 
-# -------------------- جدول الحجز المرتبط بالباقة --------------------
+# -------------------- جدول الحجز --------------------
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -175,11 +174,18 @@ class Consultation(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=True)
     booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=True)
+    specialization = db.Column(db.String(100))
+    question = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text)
+    question_for = db.Column(db.String(50))
+    gender = db.Column(db.String(10))
+    age = db.Column(db.Integer)
+    medical_history = db.Column(db.Text)
+    status = db.Column(db.String(50), default="pending")
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    consultation_type = db.Column(db.String(50), default='chat')
-    duration_minutes = db.Column(db.Integer, nullable=True)
-    notes = db.Column(db.Text, nullable=True)
-    status = db.Column(db.String(50), default='pending')
+
+    phone_number = db.Column(db.String(20), nullable=False)  # رقم الجوال
+    contact_method = db.Column(db.String(20), nullable=False)  # "WhatsApp" أو "Call"
 
 
 # -------------------- جدول التقارير الطبية --------------------
