@@ -1,6 +1,295 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استشارة طبية - نقاهة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block content %}
-<h1>استشر طبيب</h1>
-<p>يمكن للعميل حجز استشارة مع طبيب.</p>
-{% endblock %}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="tel"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .radio-option:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .radio-option input[type="radio"] {
+            margin-left: 10px;
+            width: auto;
+        }
+
+        .radio-option label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        input[type="radio"]:checked + label {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: block;
+            margin: 40px auto 0;
+            font-weight: 600;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .required {
+            color: #e74c3c;
+            font-size: 1.2rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #667eea;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .radio-group {
+                flex-direction: column;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>استشارة طبية</h1>
+            <p>احصل على استشارة طبية من أفضل الأطباء المختصين</p>
+        </div>
+
+        <div class="form-container">
+            <form action="/consult_doctor" method="POST">
+                <h2 class="section-title">معلومات الاستشارة</h2>
+                
+                <div class="form-group">
+                    <label for="specialization">التخصص المطلوب</label>
+                    <select id="specialization" name="specialization" required>
+                        <option value="">اختر التخصص</option>
+                        <option value="طب عام">طب عام</option>
+                        <option value="طب الأطفال">طب الأطفال</option>
+                        <option value="طب النساء والولادة">طب النساء والولادة</option>
+                        <option value="طب القلب">طب القلب</option>
+                        <option value="طب العظام">طب العظام</option>
+                        <option value="طب الأسنان">طب الأسنان</option>
+                        <option value="طب العيون">طب العيون</option>
+                        <option value="طب الأنف والأذن والحنجرة">طب الأنف والأذن والحنجرة</option>
+                        <option value="طب الجلدية">طب الجلدية</option>
+                        <option value="طب النفسي">طب النفسي</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="question">السؤال الطبي <span class="required">*</span></label>
+                    <textarea id="question" name="question" placeholder="اكتب سؤالك الطبي بالتفصيل..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">وصف تفصيلي للحالة</label>
+                    <textarea id="description" name="description" placeholder="اشرح الأعراض والمدة الزمنية وأي تفاصيل إضافية..."></textarea>
+                </div>
+
+                <h2 class="section-title">معلومات المريض</h2>
+
+                <div class="form-group">
+                    <label for="question_for">الاستشارة لـ</label>
+                    <select id="question_for" name="question_for" required>
+                        <option value="">اختر</option>
+                        <option value="نفسي">نفسي</option>
+                        <option value="طفلي">طفلي</option>
+                        <option value="زوجي">زوجي</option>
+                        <option value="زوجتي">زوجتي</option>
+                        <option value="والدي">والدي</option>
+                        <option value="والدتي">والدتي</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>الجنس</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="male" name="gender" value="ذكر" required>
+                                <label for="male">ذكر</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="female" name="gender" value="أنثى" required>
+                                <label for="female">أنثى</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age">العمر <span class="required">*</span></label>
+                        <input type="number" id="age" name="age" min="0" max="150" placeholder="العمر بالسنوات" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="medical_history">التاريخ المرضي</label>
+                    <textarea id="medical_history" name="medical_history" placeholder="اذكر أي أمراض مزمنة، عمليات سابقة، حساسية، أدوية حالية..."></textarea>
+                </div>
+
+                <h2 class="section-title">معلومات التواصل</h2>
+
+                <div class="form-group">
+                    <label for="phone_number">رقم الجوال <span class="required">*</span></label>
+                    <input type="tel" id="phone_number" name="phone_number" placeholder="05XXXXXXXX" pattern="[0-9]{10}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>طريقة التواصل المفضلة</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="whatsapp" name="contact_method" value="WhatsApp" required>
+                            <label for="whatsapp">واتساب</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="call" name="contact_method" value="Call" required>
+                            <label for="call">اتصال هاتفي</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">إرسال الاستشارة</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

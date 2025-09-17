@@ -1,21 +1,26 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, session
+from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify
 from models import db, User, Company, Admin, Package, Appointment, DoctorMessage, PaymentPlan, HealthCard, Invoice, Booking, Consultation, MedicalReport, Payment, Notification, AdminAction
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from flask_login import login_required, current_user
+
 from flask_migrate import Migrate
 from datetime import datetime
 import os
 
 app = Flask(__name__)
 app.secret_key = "secretkey123"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///nqaha.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////mnt/c/Users/hanee/OneDrive/Desktop/naqaha/instance/nqaha.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
 # ربط قاعدة البيانات بالـ app
 db.init_app(app)
 
+
 # تفعيل الـ Migrate
 migrate = Migrate(app, db)
+
 
 # مسار حفظ الصور
 IMAGE_UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static", "images")
@@ -177,9 +182,6 @@ def logout():
 def custom_plan():
     return render_template('custom_plan.html')
 
-@app.route('/consult-doctor')
-def consult_doctor():
-    return render_template('consult_doctor.html')
 
 @app.route('/recreation')
 def recreation():   
@@ -226,9 +228,7 @@ def appointments():
     appointments = Appointment.query.filter_by(user_id=user_id).all()
     return render_template('appointments.html', appointments=appointments)
 
-@app.route('/contact_doctors')
-def contact_doctors():
-    return render_template('contact_doctors.html')
+
 
 @app.route('/profile')
 def profile():
@@ -333,17 +333,39 @@ def pay_invoice(invoice_id):
     return redirect(url_for('all_invoices'))
 
 # ------------------- عرض الاستشارات -------------------
-@app.route('/consultations')
-def consultations():
-    user_id = session.get("user_id")
-    if not user_id:
+
+@app.route('/consult_doctor', methods=['GET', 'POST'])
+def consult_doctor():
+    # التحقق من تسجيل الدخول
+    if 'user_id' not in session:
         flash("يجب تسجيل الدخول أولاً", "danger")
         return redirect(url_for('login'))
     
-    consultations = Consultation.query.filter_by(user_id=user_id).all()
-    return render_template('consultations.html', consultations=consultations)
-
-
+    if request.method == 'POST':
+        # إنشاء استشارة جديدة
+        consultation = Consultation(
+            user_id=session['user_id'],  # استخدم session بدلاً من current_user
+            specialization=request.form.get('specialization'),
+            question=request.form.get('question'),
+            description=request.form.get('description'),
+            question_for=request.form.get('question_for'),
+            gender=request.form.get('gender'),
+            age=int(request.form.get('age')),
+            medical_history=request.form.get('medical_history'),
+            phone_number=request.form.get('phone_number'),
+            contact_method=request.form.get('contact_method'),
+            status='pending'
+        )
+        
+        # حفظ في قاعدة البيانات
+        db.session.add(consultation)
+        db.session.commit()
+        
+        flash('تم إرسال استشارتك بنجاح! سيتم التواصل معك قريباً.', 'success')
+        return redirect(url_for('consult_doctor'))
+    
+    # عرض صفحة الفورم
+    return render_template('consult_doctor.html')
 # ------------------- جدولة استشارة -------------------
 @app.route('/schedule_consultation/<int:doctor_id>', methods=['GET', 'POST'])
 def schedule_consultation(doctor_id):
