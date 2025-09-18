@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل الاستشارة</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #eef2ff;
+            margin: 0;
+            color: #0f172a;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+            padding: 24px 30px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header a {
+            color: #c7d2fe;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 24px auto;
+            padding: 0 24px 40px;
+        }
+
+        .flash-messages {
+            margin-bottom: 18px;
+        }
+
+        .alert {
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            margin-bottom: 10px;
+        }
+
+        .alert-success { background: #dcfce7; color: #166534; }
+        .alert-danger { background: #fee2e2; color: #b91c1c; }
+        .alert-info { background: #dbeafe; color: #1d4ed8; }
+        .alert-warning { background: #fef3c7; color: #b45309; }
+
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+        }
+
+        .card h2 {
+            margin: 0 0 18px;
+            font-size: 1.35rem;
+            color: #1f2937;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .meta-item {
+            background: #eef2ff;
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+
+        .meta-item span {
+            display: block;
+            color: #475569;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .question {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #0f172a;
+        }
+
+        .section-title {
+            margin-top: 26px;
+            font-size: 1.1rem;
+            color: #1f2937;
+            border-right: 4px solid #2563eb;
+            padding-right: 12px;
+        }
+
+        form {
+            margin-top: 18px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            border-radius: 14px;
+            border: 1px solid #cbd5f5;
+            padding: 14px;
+            font-size: 1rem;
+            line-height: 1.7;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.16);
+        }
+
+        .form-actions {
+            margin-top: 14px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            border: 1px solid #2563eb;
+            color: #1d4ed8;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(15, 23, 42, 0.12);
+        }
+
+        .responses {
+            margin-top: 20px;
+        }
+
+        .response-item {
+            background: #f1f5f9;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .response-meta {
+            font-size: 0.88rem;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1d4ed8;
+            background: rgba(37, 99, 235, 0.12);
+        }
+
+        select {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #cbd5f5;
+            font-size: 0.95rem;
+        }
+
+        .recommended {
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+        }
+
+        .recommended h3 {
+            margin: 0 0 16px;
+            font-size: 1.1rem;
+            color: #1e293b;
+        }
+
+        .recommended-item {
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .recommended-item a {
+            color: #1d4ed8;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .actions-inline {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% set status_labels = {
+        'new': 'جديدة',
+        'assigned': 'قيد التعيين',
+        'in_progress': 'قيد المعالجة',
+        'answered': 'تم الرد',
+        'needs_follow_up': 'تحتاج متابعة',
+        'closed': 'مغلقة'
+    } %}
+    <header>
+        <div>
+            <strong>الاستشارة رقم #{{ consultation.id }}</strong>
+            <div class="status-badge">الحالة: {{ status_labels.get(consultation.status, consultation.status) }}</div>
+        </div>
+        <a href="{{ url_for('doctor_dashboard') }}">&larr; العودة للوحة التحكم</a>
+    </header>
+
+    <div class="container">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="grid">
+            <section class="card">
+                <h2>تفاصيل المريض والاستشارة</h2>
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span>التخصص</span>
+                        {{ consultation.specialization or 'غير محدد' }}
+                    </div>
+                    <div class="meta-item">
+                        <span>الحالة الحالية</span>
+                        {{ status_labels.get(consultation.status, consultation.status) }}
+                    </div>
+                    <div class="meta-item">
+                        <span>رقم التواصل</span>
+                        {{ consultation.phone_number }}
+                    </div>
+                    <div class="meta-item">
+                        <span>طريقة التواصل</span>
+                        {{ consultation.contact_method }}
+                    </div>
+                    <div class="meta-item">
+                        <span>عمر المريض</span>
+                        {{ consultation.age or '—' }}
+                    </div>
+                    <div class="meta-item">
+                        <span>الجنس</span>
+                        {{ consultation.gender or '—' }}
+                    </div>
+                    <div class="meta-item">
+                        <span>تاريخ الإرسال</span>
+                        {{ consultation.created_at.strftime('%Y-%m-%d %H:%M') if consultation.created_at else consultation.date.strftime('%Y-%m-%d %H:%M') if consultation.date else '—' }}
+                    </div>
+                    <div class="meta-item">
+                        <span>تاريخ التعيين</span>
+                        {{ consultation.assigned_at.strftime('%Y-%m-%d %H:%M') if consultation.assigned_at else '—' }}
+                    </div>
+                    <div class="meta-item">
+                        <span>تاريخ الرد</span>
+                        {{ consultation.answered_at.strftime('%Y-%m-%d %H:%M') if consultation.answered_at else '—' }}
+                    </div>
+                </div>
+
+                <h3 class="section-title">السؤال الطبي</h3>
+                <p class="question">{{ consultation.question }}</p>
+
+                {% if consultation.description %}
+                    <h3 class="section-title">وصف الحالة</h3>
+                    <p class="question">{{ consultation.description }}</p>
+                {% endif %}
+
+                {% if consultation.medical_history %}
+                    <h3 class="section-title">التاريخ المرضي</h3>
+                    <p class="question">{{ consultation.medical_history }}</p>
+                {% endif %}
+            </section>
+
+            <section class="card">
+                <h2>إدارة الاستشارة</h2>
+
+                {% if consultation.doctor_id != doctor.id %}
+                    <form action="{{ url_for('doctor_claim_consultation', consultation_id=consultation.id) }}" method="POST">
+                        <button class="btn btn-primary" type="submit">استلام هذه الاستشارة</button>
+                    </form>
+                {% else %}
+                    <div class="actions-inline">
+                        <form action="{{ url_for('doctor_update_consultation_status', consultation_id=consultation.id) }}" method="POST">
+                            <select name="status" required>
+                                <option value="assigned" {% if consultation.status == 'assigned' %}selected{% endif %}>قيد التعيين</option>
+                                <option value="in_progress" {% if consultation.status == 'in_progress' %}selected{% endif %}>قيد المعالجة</option>
+                                <option value="answered" {% if consultation.status == 'answered' %}selected{% endif %}>تم الرد</option>
+                                <option value="needs_follow_up" {% if consultation.status == 'needs_follow_up' %}selected{% endif %}>تحتاج متابعة</option>
+                                <option value="closed" {% if consultation.status == 'closed' %}selected{% endif %}>إغلاق</option>
+                            </select>
+                            <button class="btn btn-secondary" type="submit">تحديث الحالة</button>
+                        </form>
+                    </div>
+
+                    <form action="{{ url_for('doctor_reply', consultation_id=consultation.id) }}" method="POST">
+                        <label for="reply">اكتب ردك للمريض</label>
+                        <textarea id="reply" name="reply" placeholder="اكتب التوصيات والخطوات المناسبة للمريض" required></textarea>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" type="submit">إرسال الرد للمريض</button>
+                        </div>
+                    </form>
+                {% endif %}
+
+                <div class="responses">
+                    <h3 class="section-title">ردود الأطباء السابقة</h3>
+                    {% if consultation.responses %}
+                        {% for response in consultation.responses %}
+                            <div class="response-item">
+                                <div class="response-meta">
+                                    د. {{ response.doctor.name if response.doctor else 'طبيب' }} | {{ response.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </div>
+                                <div>{{ response.body }}</div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="response-item">لم يتم إضافة أي رد حتى الآن.</div>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+
+        {% if recommended_new %}
+            <section class="recommended">
+                <h3>استشارات جديدة مشابهة</h3>
+                {% for item in recommended_new %}
+                    <div class="recommended-item">
+                        <div><strong>التخصص:</strong> {{ item.specialization or 'غير محدد' }}</div>
+                        <div>تاريخ الإرسال: {{ item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '—' }}</div>
+                        <div class="actions-inline" style="margin-top:10px;">
+                            <form action="{{ url_for('doctor_claim_consultation', consultation_id=item.id) }}" method="POST">
+                                <button class="btn btn-primary" type="submit">استلام</button>
+                            </form>
+                            <a class="btn btn-secondary" href="{{ url_for('doctor_consultation_detail', consultation_id=item.id) }}">عرض</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </section>
+        {% endif %}
+    </div>
+</body>
+</html>

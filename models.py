@@ -64,6 +64,9 @@ class Doctor(db.Model):
     specialty = db.Column(db.String(100))
     profile_picture = db.Column(db.String(200))
     status = db.Column(db.String(50), default="pending")
+    email = db.Column(db.String(120), unique=True)
+    password = db.Column(db.String(200))
+    last_login = db.Column(db.DateTime)
     approved_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
 
@@ -71,6 +74,7 @@ class Doctor(db.Model):
     appointments = db.relationship("Appointment", backref="doctor_obj", lazy=True)
     consultations = db.relationship("Consultation", backref="doctor", lazy=True)
     medical_reports = db.relationship("MedicalReport", backref="doctor", lazy=True)
+    consultation_responses = db.relationship("ConsultationResponse", backref="doctor", lazy=True)
 
 
 # -------------------- جدول الباقات --------------------
@@ -181,11 +185,35 @@ class Consultation(db.Model):
     gender = db.Column(db.String(10))
     age = db.Column(db.Integer)
     medical_history = db.Column(db.Text)
-    status = db.Column(db.String(50), default="pending")
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(50), default="new")
+    created_at = db.Column('date', db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    assigned_at = db.Column(db.DateTime, nullable=True)
+    answered_at = db.Column(db.DateTime, nullable=True)
 
-    phone_number = db.Column(db.String(20), nullable=False)  # رقم الجوال
-    contact_method = db.Column(db.String(20), nullable=False)  # "WhatsApp" أو "Call"
+    phone_number = db.Column(db.String(20), nullable=False)
+    contact_method = db.Column(db.String(20), nullable=False)
+
+    responses = db.relationship(
+        "ConsultationResponse",
+        backref="consultation",
+        lazy=True,
+        order_by="ConsultationResponse.created_at"
+    )
+
+    @property
+    def latest_response(self):
+        if not self.responses:
+            return None
+        return max(self.responses, key=lambda response: response.created_at or datetime.min)
+
+
+class ConsultationResponse(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    consultation_id = db.Column(db.Integer, db.ForeignKey('consultation.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # -------------------- جدول التقارير الطبية --------------------

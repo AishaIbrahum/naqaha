@@ -166,6 +166,51 @@
             border-bottom: 2px solid #f0f0f0;
         }
 
+        .alerts {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #c8e6c9;
+        }
+
+        .alert-danger {
+            background: #fdecea;
+            color: #c0392b;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #e8f4fd;
+            color: #1f4b99;
+            border: 1px solid #cfe2ff;
+        }
+
+        .history-link {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .history-link a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .history-link a:hover {
+            color: #4c51bf;
+        }
+
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -186,6 +231,7 @@
     </style>
 </head>
 <body>
+    {% set form_data = form_data if form_data is defined else {} %}
     <div class="container">
         <div class="header">
             <h1>استشارة طبية</h1>
@@ -193,6 +239,44 @@
         </div>
 
         <div class="form-container">
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    <div class="alerts">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="history-link">
+                <a href="{{ url_for('consultations_history') }}">عرض سجل استشاراتي السابقة</a>
+            </div>
+
+            {% set specialization_options = [
+                "طب عام",
+                "طب الأطفال",
+                "طب النساء والولادة",
+                "طب القلب",
+                "طب العظام",
+                "طب الأسنان",
+                "طب العيون",
+                "طب الأنف والأذن والحنجرة",
+                "طب الجلدية",
+                "طب النفسي",
+                "أخرى"
+            ] %}
+
+            {% set question_for_options = [
+                "نفسي",
+                "طفلي",
+                "زوجي",
+                "زوجتي",
+                "والدي",
+                "والدتي",
+                "أخرى"
+            ] %}
+
             <form action="/consult_doctor" method="POST">
                 <h2 class="section-title">معلومات الاستشارة</h2>
                 
@@ -200,28 +284,20 @@
                     <label for="specialization">التخصص المطلوب</label>
                     <select id="specialization" name="specialization" required>
                         <option value="">اختر التخصص</option>
-                        <option value="طب عام">طب عام</option>
-                        <option value="طب الأطفال">طب الأطفال</option>
-                        <option value="طب النساء والولادة">طب النساء والولادة</option>
-                        <option value="طب القلب">طب القلب</option>
-                        <option value="طب العظام">طب العظام</option>
-                        <option value="طب الأسنان">طب الأسنان</option>
-                        <option value="طب العيون">طب العيون</option>
-                        <option value="طب الأنف والأذن والحنجرة">طب الأنف والأذن والحنجرة</option>
-                        <option value="طب الجلدية">طب الجلدية</option>
-                        <option value="طب النفسي">طب النفسي</option>
-                        <option value="أخرى">أخرى</option>
+                        {% for option in specialization_options %}
+                            <option value="{{ option }}" {% if form_data.get('specialization') == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="question">السؤال الطبي <span class="required">*</span></label>
-                    <textarea id="question" name="question" placeholder="اكتب سؤالك الطبي بالتفصيل..." required></textarea>
+                    <textarea id="question" name="question" placeholder="اكتب سؤالك الطبي بالتفصيل..." required>{{ form_data.get('question', '') }}</textarea>
                 </div>
 
                 <div class="form-group">
                     <label for="description">وصف تفصيلي للحالة</label>
-                    <textarea id="description" name="description" placeholder="اشرح الأعراض والمدة الزمنية وأي تفاصيل إضافية..."></textarea>
+                    <textarea id="description" name="description" placeholder="اشرح الأعراض والمدة الزمنية وأي تفاصيل إضافية...">{{ form_data.get('description', '') }}</textarea>
                 </div>
 
                 <h2 class="section-title">معلومات المريض</h2>
@@ -230,13 +306,9 @@
                     <label for="question_for">الاستشارة لـ</label>
                     <select id="question_for" name="question_for" required>
                         <option value="">اختر</option>
-                        <option value="نفسي">نفسي</option>
-                        <option value="طفلي">طفلي</option>
-                        <option value="زوجي">زوجي</option>
-                        <option value="زوجتي">زوجتي</option>
-                        <option value="والدي">والدي</option>
-                        <option value="والدتي">والدتي</option>
-                        <option value="أخرى">أخرى</option>
+                        {% for option in question_for_options %}
+                            <option value="{{ option }}" {% if form_data.get('question_for') == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -245,11 +317,11 @@
                         <label>الجنس</label>
                         <div class="radio-group">
                             <div class="radio-option">
-                                <input type="radio" id="male" name="gender" value="ذكر" required>
+                                <input type="radio" id="male" name="gender" value="ذكر" {% if form_data.get('gender') == 'ذكر' %}checked{% endif %} required>
                                 <label for="male">ذكر</label>
                             </div>
                             <div class="radio-option">
-                                <input type="radio" id="female" name="gender" value="أنثى" required>
+                                <input type="radio" id="female" name="gender" value="أنثى" {% if form_data.get('gender') == 'أنثى' %}checked{% endif %} required>
                                 <label for="female">أنثى</label>
                             </div>
                         </div>
@@ -257,31 +329,31 @@
 
                     <div class="form-group">
                         <label for="age">العمر <span class="required">*</span></label>
-                        <input type="number" id="age" name="age" min="0" max="150" placeholder="العمر بالسنوات" required>
+                        <input type="number" id="age" name="age" min="0" max="150" placeholder="العمر بالسنوات" value="{{ form_data.get('age', '') }}" required>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="medical_history">التاريخ المرضي</label>
-                    <textarea id="medical_history" name="medical_history" placeholder="اذكر أي أمراض مزمنة، عمليات سابقة، حساسية، أدوية حالية..."></textarea>
+                    <textarea id="medical_history" name="medical_history" placeholder="اذكر أي أمراض مزمنة، عمليات سابقة، حساسية، أدوية حالية...">{{ form_data.get('medical_history', '') }}</textarea>
                 </div>
 
                 <h2 class="section-title">معلومات التواصل</h2>
 
                 <div class="form-group">
                     <label for="phone_number">رقم الجوال <span class="required">*</span></label>
-                    <input type="tel" id="phone_number" name="phone_number" placeholder="05XXXXXXXX" pattern="[0-9]{10}" required>
+                    <input type="tel" id="phone_number" name="phone_number" placeholder="05XXXXXXXX" pattern="[0-9]{9,15}" value="{{ form_data.get('phone_number', '') }}" required>
                 </div>
 
                 <div class="form-group">
                     <label>طريقة التواصل المفضلة</label>
                     <div class="radio-group">
                         <div class="radio-option">
-                            <input type="radio" id="whatsapp" name="contact_method" value="WhatsApp" required>
+                            <input type="radio" id="whatsapp" name="contact_method" value="WhatsApp" {% if form_data.get('contact_method') == 'WhatsApp' %}checked{% endif %} required>
                             <label for="whatsapp">واتساب</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" id="call" name="contact_method" value="Call" required>
+                            <input type="radio" id="call" name="contact_method" value="Call" {% if form_data.get('contact_method') == 'Call' %}checked{% endif %} required>
                             <label for="call">اتصال هاتفي</label>
                         </div>
                     </div>

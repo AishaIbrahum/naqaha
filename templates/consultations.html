@@ -1,679 +1,423 @@
-   <!--<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الاستشارة الطبية</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>سجل الاستشارات الطبية</title>
     <style>
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #333;
+            background: #f4f6fb;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1100px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            animation: slideUp 0.8s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            padding: 40px 20px;
         }
 
         .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 30px;
             text-align: center;
+            margin-bottom: 30px;
         }
 
         .header h1 {
-            font-size: 2.5rem;
             margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            color: #1f2933;
         }
 
         .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            color: #52606d;
+            font-size: 1.05rem;
         }
 
-        .form-container {
-            padding: 40px;
+        .actions {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
-        .form-group {
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.25);
+        }
+
+        .alerts {
             margin-bottom: 25px;
-            position: relative;
         }
 
-        .form-row {
-            display: flex;
+        .alert {
+            padding: 15px 18px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #c8e6c9;
+        }
+
+        .alert-danger {
+            background: #fdecea;
+            color: #c0392b;
+            border: 1px solid #f5c2c7;
+        }
+
+        .alert-info {
+            background: #e8f4fd;
+            color: #1f4b99;
+            border: 1px solid #cfe2ff;
+        }
+
+        .timeline {
+            display: grid;
             gap: 20px;
         }
 
-        .form-row .form-group {
-            flex: 1;
+        .consultation-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            border-right: 6px solid #d5d9eb;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
         }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 1rem;
+        .consultation-card.status-new {
+            border-right-color: #f59e0b;
         }
 
-        .required {
-            color: #e53e3e;
+        .consultation-card.status-assigned {
+            border-right-color: #3b82f6;
         }
 
-        input, textarea, select {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 16px;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            background-color: #f8fafc;
+        .consultation-card.status-answered {
+            border-right-color: #22c55e;
         }
 
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #4facfe;
-            background-color: white;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-            transform: translateY(-1px);
+        .consultation-card.status-pending {
+            border-right-color: #f97316;
         }
 
-        textarea {
-            min-height: 120px;
-            resize: vertical;
+        .consultation-card.status-in_progress {
+            border-right-color: #0ea5e9;
         }
 
-        .radio-group {
+        .consultation-card.status-needs_follow_up {
+            border-right-color: #f97316;
+        }
+
+        .consultation-card.status-closed {
+            border-right-color: #6b7280;
+        }
+
+        .card-header {
             display: flex;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
             flex-wrap: wrap;
         }
 
-        .radio-option {
-            display: flex;
+        .card-header h2 {
+            margin: 0 0 8px 0;
+            color: #1f2933;
+        }
+
+        .meta {
+            color: #52606d;
+            font-size: 0.92rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background-color: #f8fafc;
-        }
-
-        .radio-option:hover {
-            border-color: #4facfe;
-            background-color: #f0f9ff;
-        }
-
-        .radio-option input[type="radio"] {
-            width: auto;
-            margin: 0;
-        }
-
-        .radio-option input[type="radio"]:checked + span {
-            color: #4facfe;
+            justify-content: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.8rem;
             font-weight: 600;
+            letter-spacing: 0.02em;
         }
 
-        .contact-methods {
-            display: flex;
-            gap: 20px;
-            margin-top: 15px;
+        .status-badge.new {
+            background: rgba(245, 158, 11, 0.15);
+            color: #b45309;
         }
 
-        .contact-method {
-            flex: 1;
-            padding: 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background-color: #f8fafc;
+        .status-badge.assigned {
+            background: rgba(59, 130, 246, 0.15);
+            color: #1d4ed8;
         }
 
-        .contact-method:hover {
-            border-color: #4facfe;
-            background-color: #f0f9ff;
+        .status-badge.answered {
+            background: rgba(34, 197, 94, 0.15);
+            color: #047857;
         }
 
-        .contact-method.selected {
-            border-color: #4facfe;
-            background-color: #4facfe;
-            color: white;
+        .status-badge.pending {
+            background: rgba(249, 115, 22, 0.15);
+            color: #c2410c;
         }
 
-        .contact-method i {
-            font-size: 2rem;
-            margin-bottom: 10px;
+        .status-badge.in_progress {
+            background: rgba(14, 165, 233, 0.15);
+            color: #0369a1;
+        }
+
+        .status-badge.needs_follow_up {
+            background: rgba(249, 115, 22, 0.15);
+            color: #c2410c;
+        }
+
+        .status-badge.closed {
+            background: rgba(107, 114, 128, 0.15);
+            color: #374151;
+        }
+
+        .question {
+            margin: 18px 0 10px;
+            font-size: 1.05rem;
+            color: #1f2933;
+            line-height: 1.7;
+        }
+
+        .description {
+            margin-bottom: 18px;
+            color: #475569;
+            line-height: 1.7;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .detail {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+
+        .detail span {
             display: block;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 1.2rem;
+            color: #1f2933;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 30px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-bottom: 4px;
         }
 
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+        .responses {
+            margin-top: 18px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 16px;
         }
 
-        .submit-btn:active {
-            transform: translateY(0);
+        .responses h3 {
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+            color: #1f2937;
         }
 
-        .icon {
-            margin-left: 8px;
-            color: #4facfe;
+        .response-item {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
         }
 
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            padding: 20px 0;
+        .response-meta {
+            font-size: 0.85rem;
+            color: #475569;
+            margin-bottom: 8px;
         }
 
-        .step {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 10px;
-            font-weight: 600;
-            position: relative;
+        .response-text {
+            margin: 0;
+            color: #1e293b;
+            line-height: 1.6;
         }
 
-        .step.active {
-            background-color: #4facfe;
-            color: white;
+        .no-response {
+            background: #fff7ed;
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: #c2410c;
+            font-size: 0.9rem;
+            border: 1px solid #fed7aa;
         }
 
-        .step.completed {
-            background-color: #48bb78;
-            color: white;
+        .empty-state {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
         }
 
-        .step:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            right: -20px;
-            width: 20px;
-            height: 2px;
-            background-color: #e2e8f0;
-            transform: translateY(-50%);
+        .empty-state h2 {
+            margin-bottom: 12px;
+            color: #1f2937;
         }
 
-        .step.completed:not(:last-child)::after {
-            background-color: #48bb78;
+        .empty-state p {
+            color: #64748b;
+            line-height: 1.6;
         }
 
         @media (max-width: 768px) {
-            .form-row {
-                flex-direction: column;
+            .container {
+                padding: 20px 16px;
             }
-            
-            .contact-methods {
-                flex-direction: column;
-            }
-            
-            .radio-group {
-                flex-direction: column;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .form-container {
-                padding: 20px;
-            }
-        }
 
-        .success-message {
-            display: none;
-            text-align: center;
-            padding: 40px;
-            color: #48bb78;
-        }
-
-        .success-message i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-        }
-
-        .success-message h2 {
-            margin-bottom: 10px;
-            font-size: 1.8rem;
+            .consultation-card {
+                padding: 18px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-stethoscope"></i> الاستشارة الطبية</h1>
-            <p>احصل على استشارة طبية متخصصة من أطباء مؤهلين</p>
+        <header class="header">
+            <h1>سجل الاستشارات الطبية</h1>
+            <p>تابع حالة كل استشارة واطلع على ردود الأطباء في مكان واحد</p>
+        </header>
+
+        <div class="actions">
+            <a class="btn-primary" href="{{ url_for('consult_doctor') }}">إرسال استشارة جديدة</a>
         </div>
 
-        <div class="step-indicator">
-            <div class="step active">1</div>
-            <div class="step">2</div>
-            <div class="step">3</div>
-        </div>
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="alerts">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-        <div class="form-container">
-            <form id="consultationForm" action="/consultation" method="POST">
-               معلومات أساسية 
-                <div class="form-step active">
-                    <h3 style="margin-bottom: 25px; color: #4a5568; font-size: 1.5rem;">
-                        <i class="fas fa-user icon"></i>المعلومات الأساسية
-                    </h3>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="specialization">
-                                <i class="fas fa-medical-bag icon"></i>التخصص المطلوب
-                            </label>
-                            <select id="specialization" name="specialization" required>
-                                <option value="">اختر التخصص</option>
-                                <option value="internal_medicine">الطب الباطني</option>
-                                <option value="pediatrics">طب الأطفال</option>
-                                <option value="cardiology">أمراض القلب</option>
-                                <option value="dermatology">الجلدية</option>
-                                <option value="orthopedics">العظام</option>
-                                <option value="gynecology">أمراض النساء</option>
-                                <option value="psychiatry">الطب النفسي</option>
-                                <option value="neurology">الأعصاب</option>
-                                <option value="general">عام</option>
-                            </select>
-                        </div>
+        {% set status_labels = {
+            'new': 'جديدة',
+            'assigned': 'قيد التعيين',
+            'in_progress': 'قيد المعالجة',
+            'answered': 'تم الرد',
+            'pending': 'قيد الانتظار',
+            'needs_follow_up': 'تحتاج متابعة',
+            'closed': 'مغلقة'
+        } %}
 
-                        <div class="form-group">
-                            <label for="question_for">
-                                <i class="fas fa-question-circle icon"></i>الاستشارة لـ
-                            </label>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" id="for_me" name="question_for" value="myself" required>
-                                    <span>نفسي</span>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="for_other" name="question_for" value="other">
-                                    <span>شخص آخر</span>
-                                </div>
+        {% set contact_method_labels = {
+            'WhatsApp': 'واتساب',
+            'Call': 'اتصال هاتفي'
+        } %}
+
+        {% if consultations %}
+            <div class="timeline">
+                {% for consultation in consultations %}
+                    <article class="consultation-card status-{{ consultation.status }}">
+                        <div class="card-header">
+                            <div>
+                                <span class="status-badge {{ consultation.status }}">
+                                    {{ status_labels.get(consultation.status, consultation.status) }}
+                                </span>
+                                <h2>{{ consultation.specialization or 'غير محدد' }}</h2>
+                                <div class="meta">تاريخ الإرسال: {{ (consultation.created_at or consultation.updated_at).strftime('%Y-%m-%d %H:%M') }}</div>
+                                {% if consultation.assigned_at %}
+                                    <div class="meta">تاريخ التعيين: {{ consultation.assigned_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                                {% endif %}
+                                {% if consultation.answered_at %}
+                                    <div class="meta">تاريخ الرد: {{ consultation.answered_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                                {% endif %}
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="gender">
-                                <i class="fas fa-venus-mars icon"></i>الجنس <span class="required">*</span>
-                            </label>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" id="male" name="gender" value="male" required>
-                                    <span>ذكر</span>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="female" name="gender" value="female">
-                                    <span>أنثى</span>
-                                </div>
+                            <div class="meta">
+                                <div>الطبيب المعين: {{ consultation.doctor.name if consultation.doctor else 'لم يتم التعيين بعد' }}</div>
+                                <div>طريقة التواصل: {{ contact_method_labels.get(consultation.contact_method, consultation.contact_method) }}</div>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="age">
-                                <i class="fas fa-birthday-cake icon"></i>العمر <span class="required">*</span>
-                            </label>
-                            <input type="number" id="age" name="age" min="1" max="120" required>
+                        <div class="question">سؤال الاستشارة: {{ consultation.question }}</div>
+                        {% if consultation.description %}
+                            <div class="description">{{ consultation.description }}</div>
+                        {% endif %}
+
+                        <div class="details">
+                            {% if consultation.question_for %}
+                                <div class="detail">
+                                    <span>الاستشارة لـ</span>
+                                    {{ consultation.question_for }}
+                                </div>
+                            {% endif %}
+                            {% if consultation.gender %}
+                                <div class="detail">
+                                    <span>الجنس</span>
+                                    {{ consultation.gender }}
+                                </div>
+                            {% endif %}
+                            {% if consultation.age is not none %}
+                                <div class="detail">
+                                    <span>العمر</span>
+                                    {{ consultation.age }} سنة
+                                </div>
+                            {% endif %}
+                            <div class="detail">
+                                <span>رقم التواصل</span>
+                                {{ consultation.phone_number }}
+                            </div>
+                            {% if consultation.medical_history %}
+                                <div class="detail" style="grid-column: 1 / -1;">
+                                    <span>التاريخ المرضي</span>
+                                    {{ consultation.medical_history }}
+                                </div>
+                            {% endif %}
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="phone_number">
-                            <i class="fas fa-phone icon"></i>رقم الجوال <span class="required">*</span>
-                        </label>
-                        <input type="tel" id="phone_number" name="phone_number" placeholder="05xxxxxxxx" required>
-                    </div>
-                </div>
-
-                 الأسئلة الطبية 
-                <div class="form-step">
-                    <h3 style="margin-bottom: 25px; color: #4a5568; font-size: 1.5rem;">
-                        <i class="fas fa-notes-medical icon"></i>التفاصيل الطبية
-                    </h3>
-
-                    <div class="form-group">
-                        <label for="question">
-                            <i class="fas fa-question icon"></i>السؤال الطبي <span class="required">*</span>
-                        </label>
-                        <textarea id="question" name="question" placeholder="اكتب سؤالك الطبي بوضوح..." required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="description">
-                            <i class="fas fa-file-medical-alt icon"></i>وصف مفصل للحالة
-                        </label>
-                        <textarea id="description" name="description" placeholder="اكتب وصفاً مفصلاً للأعراض أو الحالة الطبية..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="medical_history">
-                            <i class="fas fa-history icon"></i>التاريخ المرضي
-                        </label>
-                        <textarea id="medical_history" name="medical_history" placeholder="أي أمراض مزمنة، عمليات سابقة، أدوية حالية..."></textarea>
-                    </div>
-                </div>
-
-                طريقة التواصل 
-                <div class="form-step">
-                    <h3 style="margin-bottom: 25px; color: #4a5568; font-size: 1.5rem;">
-                        <i class="fas fa-phone-alt icon"></i>طريقة التواصل المفضلة
-                    </h3>
-
-                    <div class="contact-methods">
-                        <div class="contact-method" data-method="WhatsApp">
-                            <i class="fab fa-whatsapp"></i>
-                            <div>واتساب</div>
-                            <small>رد سريع عبر الرسائل</small>
-                        </div>
-                        <div class="contact-method" data-method="Call">
-                            <i class="fas fa-phone-alt"></i>
-                            <div>مكالمة هاتفية</div>
-                            <small>استشارة مباشرة</small>
-                        </div>
-                    </div>
-                    <input type="hidden" id="contact_method" name="contact_method" required>
-
-                    <button type="submit" class="submit-btn">
-                        <i class="fas fa-paper-plane"></i>
-                        إرسال الاستشارة
-                    </button>
-                </div>
-
-                <div class="success-message" id="successMessage">
-                    <i class="fas fa-check-circle"></i>
-                    <h2>تم إرسال الاستشارة بنجاح!</h2>
-                    <p>سيتم التواصل معك قريباً من قبل الطبيب المختص</p>
-                </div>
-            </form>
-        </div>
+                        {% if consultation.responses %}
+                            <div class="responses">
+                                <h3>ردود الأطباء</h3>
+                                {% for response in consultation.responses %}
+                                    <div class="response-item">
+                                        <div class="response-meta">
+                                            د. {{ response.doctor.name if response.doctor else 'طبيب مجهول' }}
+                                            • {{ response.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </div>
+                                        <p class="response-text">{{ response.body }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="no-response">لم يتم الرد على هذه الاستشارة بعد.</div>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h2>لا توجد استشارات محفوظة بعد</h2>
+                <p>ابدأ بإرسال استشارة طبية جديدة وسنقوم بربطك مع الطبيب المناسب في أقرب وقت.</p>
+            </div>
+        {% endif %}
     </div>
-
-    <script>
-        // إدارة خطوات النموذج
-        l// إدارة خطوات النموذج
-            let currentStep = 0;
-            const steps = document.querySelectorAll('.form-step');
-            const stepIndicators = document.querySelectorAll('.step');
-
-            function showStep(n) {
-                steps.forEach((step, index) => {
-                    step.style.display = index === n ? 'block' : 'none';
-                });
-                
-                stepIndicators.forEach((indicator, index) => {
-                    indicator.classList.remove('active', 'completed');
-                    if (index < n) indicator.classList.add('completed');
-                    if (index === n) indicator.classList.add('active');
-                });
-            }
-
-            // التنقل بين الخطوات عند ملء الحقول المطلوبة
-            document.addEventListener('change', function(e) {
-                if (currentStep === 0) {
-                    const requiredFields = ['specialization', 'question_for', 'gender', 'age', 'phone_number'];
-                    const filled = requiredFields.every(field => {
-                        const input = document.querySelector(`[name="${field}"]`);
-                        if (input.type === 'radio') {
-                            return document.querySelector(`[name="${field}"]:checked`);
-                        }
-                        return input.value.trim() !== '';
-                    });
-                    
-                    if (filled) {
-                        setTimeout(() => {
-                            currentStep = 1;
-                            showStep(currentStep);
-                        }, 500);
-                    }
-                } else if (currentStep === 1) {
-                    const question = document.getElementById('question').value.trim();
-                    if (question !== '') {
-                        setTimeout(() => {
-                            currentStep = 2;
-                            showStep(currentStep);
-                        }, 500);
-                    }
-                }
-            });
-
-            // اختيار طريقة التواصل
-            document.querySelectorAll('.contact-method').forEach(method => {
-                method.addEventListener('click', function() {
-                    document.querySelectorAll('.contact-method').forEach(m => m.classList.remove('selected'));
-                    this.classList.add('selected');
-                    document.getElementById('contact_method').value = this.dataset.method;
-                });
-            });
-
-            // إرسال النموذج
-            document.getElementById('consultationForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // التحقق من صحة البيانات
-                if (!validateForm()) return;
-                
-                // إظهار رسالة التحميل
-                const submitBtn = document.querySelector('.submit-btn');
-                const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-                submitBtn.disabled = true;
-                
-                // إرسال البيانات الفعلية إلى السيرفر
-                const formData = new FormData(this);
-                
-                fetch('/consultation', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // إظهار رسالة النجاح
-                        document.querySelector('.form-container').style.display = 'none';
-                        document.querySelector('.step-indicator').style.display = 'none';
-                        document.getElementById('successMessage').style.display = 'block';
-                        
-                        // إعادة تعيين النموذج بعد 5 ثواني
-                        setTimeout(() => {
-                            this.reset();
-                            currentStep = 0;
-                            showStep(0);
-                            document.querySelector('.form-container').style.display = 'block';
-                            document.querySelector('.step-indicator').style.display = 'flex';
-                            document.getElementById('successMessage').style.display = 'none';
-                            submitBtn.innerHTML = originalText;
-                            submitBtn.disabled = false;
-                            
-                            // إلغاء تحديد طريقة التواصل
-                            document.querySelectorAll('.contact-method').forEach(m => m.classList.remove('selected'));
-                        }, 5000);
-                    } else {
-                        // عرض رسالة الخطأ
-                        alert(data.message || 'حدث خطأ في إرسال الاستشارة. يرجى المحاولة مرة أخرى.');
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    // في حالة الخطأ، إعادة الزر لحالته الأصلية
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                    
-                    // محاولة إرسال النموذج بالطريقة التقليدية كخطة احتياطية
-                    if (confirm('حدث خطأ في الإرسال. هل تريد المحاولة مرة أخرى؟')) {
-                        this.submit();
-                    }
-                });
-            });
-
-            function validateForm() {
-                const requiredFields = ['specialization', 'question_for', 'gender', 'age', 'phone_number', 'question', 'contact_method'];
-                
-                for (let field of requiredFields) {
-                    const input = document.querySelector(`[name="${field}"]`);
-                    if (!input) continue;
-                    
-                    if (input.type === 'radio') {
-                        if (!document.querySelector(`[name="${field}"]:checked`)) {
-                            alert(`يرجى اختيار ${field === 'gender' ? 'الجنس' : field === 'question_for' ? 'نوع الاستشارة' : 'الحقل المطلوب'}`);
-                            currentStep = 0; // العودة للخطوة الأولى
-                            showStep(currentStep);
-                            return false;
-                        }
-                    } else if (input.value.trim() === '') {
-                        // تحديد الخطوة المناسبة بناءً على الحقل
-                        if (['specialization', 'question_for', 'gender', 'age', 'phone_number'].includes(field)) {
-                            currentStep = 0;
-                        } else if (['question', 'description', 'medical_history'].includes(field)) {
-                            currentStep = 1;
-                        } else if (field === 'contact_method') {
-                            currentStep = 2;
-                        }
-                        showStep(currentStep);
-                        
-                        const fieldLabel = input.labels ? input.labels[0].textContent.replace('*', '').trim() : field;
-                        alert(`يرجى ملء حقل ${fieldLabel}`);
-                        input.focus();
-                        return false;
-                    }
-                }
-                
-                // التحقق من رقم الجوال السعودي
-                const phone = document.getElementById('phone_number').value;
-                if (!/^05\d{8}$/.test(phone)) {
-                    alert('يرجى إدخال رقم جوال سعودي صحيح يبدأ بـ 05 ويتكون من 10 أرقام');
-                    currentStep = 0;
-                    showStep(currentStep);
-                    document.getElementById('phone_number').focus();
-                    return false;
-                }
-                
-                // التحقق من العمر
-                const age = parseInt(document.getElementById('age').value);
-                if (isNaN(age) || age < 1 || age > 120) {
-                    alert('يرجى إدخال عمر صحيح بين 1 و 120');
-                    currentStep = 0;
-                    showStep(currentStep);
-                    document.getElementById('age').focus();
-                    return false;
-                }
-                
-                // التحقق من اختيار طريقة التواصل
-                if (!document.getElementById('contact_method').value) {
-                    alert('يرجى اختيار طريقة التواصل المفضلة');
-                    currentStep = 2;
-                    showStep(currentStep);
-                    return false;
-                }
-                
-                return true;
-            }
-
-            // إظهار الخطوة الأولى في البداية
-            showStep(0);
-
-            // إضافة تأثيرات بصرية
-            document.querySelectorAll('input, textarea, select').forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.parentElement.style.transform = 'scale(1.02)';
-                    this.parentElement.style.transition = 'transform 0.2s ease';
-                });
-                
-                input.addEventListener('blur', function() {
-                    this.parentElement.style.transform = 'scale(1)';
-                });
-            });
-
-            // إضافة مؤشر للحقول المطلوبة
-            document.addEventListener('DOMContentLoaded', function() {
-                const requiredInputs = document.querySelectorAll('[required]');
-                requiredInputs.forEach(input => {
-                    if (input.labels && input.labels[0]) {
-                        const label = input.labels[0];
-                        if (!label.innerHTML.includes('<span class="required">')) {
-                            label.innerHTML += ' <span class="required">*</span>';
-                        }
-                    }
-                });
-            });
-
-            // معالجة زر الرجوع في المتصفح
-            window.addEventListener('popstate', function(e) {
-                if (currentStep > 0) {
-                    e.preventDefault();
-                    currentStep--;
-                    showStep(currentStep);
-                }
-            });
-                </script>
 </body>
 </html>

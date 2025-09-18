@@ -1,12 +1,14 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify
-from models import db, User, Company, Admin, Package, Appointment, DoctorMessage, PaymentPlan, HealthCard, Invoice, Booking, Consultation, MedicalReport, Payment, Notification, AdminAction
+from models import db, User, Company, Admin, Doctor, Package, Appointment, DoctorMessage, PaymentPlan, HealthCard, Invoice, Booking, Consultation, ConsultationResponse, MedicalReport, Payment, Notification, AdminAction
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 
 from flask_migrate import Migrate
 from datetime import datetime
+from functools import wraps
 import os
+import re
 
 app = Flask(__name__)
 app.secret_key = "secretkey123"
@@ -31,6 +33,147 @@ app.config["UPLOAD_FOLDER"] = IMAGE_UPLOAD_FOLDER
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def validate_consultation_form(form_data):
+    errors = []
+
+    required_fields = {
+        "specialization": "يجب اختيار التخصص",
+        "question": "الرجاء إدخال سؤالك الطبي",
+        "question_for": "حدد لمن هذه الاستشارة",
+        "gender": "حدد الجنس",
+        "age": "الرجاء إدخال العمر",
+        "phone_number": "الرجاء إدخال رقم الجوال",
+        "contact_method": "اختر طريقة التواصل المفضلة"
+    }
+
+    for field, message in required_fields.items():
+        value = form_data.get(field)
+        if not value or not str(value).strip():
+            errors.append(message)
+
+    # Validate age is an integer >= 0
+    age_value = form_data.get("age")
+    if age_value:
+        try:
+            age_int = int(age_value)
+            if age_int < 0:
+                errors.append("العمر لا يمكن أن يكون سالباً")
+        except (TypeError, ValueError):
+            errors.append("العمر يجب أن يكون عدداً صحيحاً")
+
+    # Validate phone number (basic 10 digits check)
+    phone_value = (form_data.get("phone_number") or "").strip()
+    if phone_value and not re.fullmatch(r"\d{9,15}", phone_value):
+        errors.append("رقم الجوال يجب أن يحتوي على أرقام فقط (9-15 رقم)")
+
+    return errors
+
+
+def build_consultation_from_form(form_data, user_id):
+    description = form_data.get("description")
+    medical_history = form_data.get("medical_history")
+
+    consultation = Consultation(
+        user_id=user_id,
+        specialization=(form_data.get("specialization") or "").strip(),
+        question=(form_data.get("question") or "").strip(),
+        description=description.strip() if description else None,
+        question_for=form_data.get("question_for"),
+        gender=form_data.get("gender"),
+        age=int(form_data.get("age")) if form_data.get("age") else None,
+        medical_history=medical_history.strip() if medical_history else None,
+        phone_number=(form_data.get("phone_number") or "").strip(),
+        contact_method=form_data.get("contact_method"),
+        status="new"
+    )
+
+    return consultation
+
+
+def normalize_specialty(value):
+    if not value:
+        return ""
+    return str(value).strip().lower()
+
+
+def get_logged_in_doctor():
+    doctor_id = session.get('doctor_id')
+    if not doctor_id:
+        return None
+    return Doctor.query.get(doctor_id)
+
+
+def doctor_login_required(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        doctor = get_logged_in_doctor()
+        if not doctor:
+            flash("يجب تسجيل دخول الطبيب أولاً", "danger")
+            next_url = request.url if request.method == 'GET' else request.referrer
+            return redirect(url_for('doctor_login', next=next_url))
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
+
+def auto_assign_doctor(consultation):
+    target_specialty = normalize_specialty(consultation.specialization)
+    if not target_specialty:
+        return None
+
+    available_doctors = [
+        doctor for doctor in Doctor.query.filter(Doctor.status == "available").all()
+        if normalize_specialty(doctor.specialty)
+        and normalize_specialty(doctor.specialty) == target_specialty
+    ]
+
+    if not available_doctors:
+        return None
+
+    doctor_ids = [doctor.id for doctor in available_doctors]
+    if not doctor_ids:
+        return None
+
+    active_counts = {
+        doctor_id: count
+        for doctor_id, count in db.session.query(
+            Consultation.doctor_id,
+            db.func.count(Consultation.id)
+        ).filter(
+            Consultation.doctor_id.in_(doctor_ids),
+            Consultation.status.in_(["new", "assigned", "in_progress", "needs_follow_up"])
+        ).group_by(Consultation.doctor_id)
+    }
+
+    available_doctors.sort(key=lambda doc: active_counts.get(doc.id, 0))
+
+    return available_doctors[0] if available_doctors else None
+
+
+def notify_doctor(doctor, consultation):
+    if not doctor:
+        return
+
+    message = (
+        f"لديك استشارة جديدة (#{consultation.id}) من المستخدم {consultation.user_id}. "
+        f"التخصص: {consultation.specialization}."
+    )
+    app.logger.info(message)
+
+
+def notify_patient(user_id, title, message):
+    if not user_id:
+        return None
+
+    notification = Notification(
+        user_id=user_id,
+        title=title,
+        body=message
+    )
+    db.session.add(notification)
+    return notification
 
 # ------------------- الصفحات -------------------
 @app.route('/')
@@ -132,6 +275,198 @@ def company_dashboard():
     if 'company_id' in session:
         return render_template('company_dashboard.html')
     return redirect(url_for('company_login'))
+
+# ------------------- بوابة الأطباء -------------------
+@app.route('/doctor/login', methods=['GET', 'POST'])
+def doctor_login():
+    if 'doctor_id' in session and request.method == 'GET':
+        return redirect(url_for('doctor_dashboard'))
+
+    if request.method == 'POST':
+        email = (request.form.get('email') or '').strip().lower()
+        password = request.form.get('password') or ''
+
+        doctor = None
+        if email:
+            doctor = Doctor.query.filter(db.func.lower(Doctor.email) == email).first()
+
+        if doctor and doctor.password and check_password_hash(doctor.password, password):
+            session['doctor_id'] = doctor.id
+            doctor.last_login = datetime.utcnow()
+            db.session.commit()
+            flash("تم تسجيل الدخول بنجاح", "success")
+
+            next_url = request.args.get('next') or request.form.get('next') or url_for('doctor_dashboard')
+            return redirect(next_url)
+
+        flash("بيانات الدخول غير صحيحة", "danger")
+
+    return render_template('doctor_login.html')
+
+
+@app.route('/doctor/logout')
+def doctor_logout():
+    session.pop('doctor_id', None)
+    flash("تم تسجيل خروج الطبيب", "info")
+    return redirect(url_for('doctor_login'))
+
+
+@app.route('/doctor/dashboard')
+@doctor_login_required
+def doctor_dashboard():
+    doctor = get_logged_in_doctor()
+
+    # استشارات جديدة من نفس التخصص وغير معينة
+    new_consultations_query = Consultation.query.filter(Consultation.status == 'new')
+    doctor_specialty = normalize_specialty(doctor.specialty)
+    if doctor_specialty:
+        new_consultations_query = new_consultations_query.filter(
+            db.func.lower(db.func.trim(Consultation.specialization)) == doctor_specialty
+        )
+
+    new_consultations = new_consultations_query.order_by(Consultation.created_at.desc()).all()
+
+    doctor_consultations = (
+        Consultation.query
+        .filter(Consultation.doctor_id == doctor.id)
+        .order_by(Consultation.created_at.desc())
+        .all()
+    )
+
+    active_consultations = [
+        consultation for consultation in doctor_consultations
+        if consultation.status in {"assigned", "in_progress", "needs_follow_up"}
+    ]
+
+    answered_consultations = [
+        consultation for consultation in doctor_consultations
+        if consultation.status in {"answered", "closed"}
+    ]
+
+    stats = {
+        "active": len(active_consultations),
+        "answered": len(answered_consultations),
+        "waiting": len(new_consultations)
+    }
+
+    return render_template(
+        'doctor_dashboard.html',
+        doctor=doctor,
+        stats=stats,
+        new_consultations=new_consultations,
+        active_consultations=active_consultations,
+        answered_consultations=answered_consultations
+    )
+
+
+@app.route('/doctor/consultations/<int:consultation_id>')
+@doctor_login_required
+def doctor_consultation_detail(consultation_id):
+    doctor = get_logged_in_doctor()
+    consultation = Consultation.query.get_or_404(consultation_id)
+
+    if consultation.doctor_id not in (None, doctor.id):
+        flash("هذه الاستشارة مخصصة لطبيب آخر", "warning")
+        return redirect(url_for('doctor_dashboard'))
+
+    recommended_new = []
+    target_specialty = normalize_specialty(consultation.specialization) or normalize_specialty(doctor.specialty)
+    recommendations_query = Consultation.query.filter(
+        Consultation.status == 'new',
+        Consultation.id != consultation.id
+    )
+    if target_specialty:
+        recommendations_query = recommendations_query.filter(
+            db.func.lower(db.func.trim(Consultation.specialization)) == target_specialty
+        )
+    recommended_new = recommendations_query.order_by(Consultation.created_at.desc()).limit(3).all()
+
+    return render_template(
+        'doctor_consultation_detail.html',
+        doctor=doctor,
+        consultation=consultation,
+        recommended_new=recommended_new
+    )
+
+
+@app.route('/doctor/consultations/<int:consultation_id>/claim', methods=['POST'])
+@doctor_login_required
+def doctor_claim_consultation(consultation_id):
+    doctor = get_logged_in_doctor()
+    consultation = Consultation.query.get_or_404(consultation_id)
+
+    if consultation.doctor_id and consultation.doctor_id != doctor.id:
+        flash("تم تعيين هذه الاستشارة لطبيب آخر", "danger")
+        return redirect(url_for('doctor_dashboard'))
+
+    if consultation.status == 'answered':
+        flash("تم الرد على هذه الاستشارة مسبقاً", "info")
+        return redirect(url_for('doctor_dashboard'))
+
+    previously_unassigned = consultation.doctor_id is None
+
+    consultation.doctor_id = doctor.id
+    consultation.status = 'in_progress'
+    if not consultation.assigned_at:
+        consultation.assigned_at = datetime.utcnow()
+
+    if previously_unassigned:
+        notify_patient(
+            consultation.user_id,
+            "تم تعيين طبيب",
+            f"تم تحويل استشارتك إلى د. {doctor.name}"
+        )
+
+    db.session.commit()
+
+    flash("تم استلام الاستشارة والبدء في معالجتها", "success")
+    return redirect(url_for('doctor_consultation_detail', consultation_id=consultation.id))
+
+
+@app.route('/doctor/consultations/<int:consultation_id>/status', methods=['POST'])
+@doctor_login_required
+def doctor_update_consultation_status(consultation_id):
+    doctor = get_logged_in_doctor()
+    consultation = Consultation.query.get_or_404(consultation_id)
+
+    if consultation.doctor_id != doctor.id:
+        flash("لا تملك صلاحية تعديل هذه الاستشارة", "danger")
+        return redirect(url_for('doctor_dashboard'))
+
+    new_status = request.form.get('status')
+    allowed_statuses = {"assigned", "in_progress", "answered", "closed", "needs_follow_up"}
+
+    if new_status not in allowed_statuses:
+        flash("حالة غير مسموح بها", "danger")
+        return redirect(url_for('doctor_consultation_detail', consultation_id=consultation.id))
+
+    previous_status = consultation.status
+    consultation.status = new_status
+
+    if new_status in {"assigned", "in_progress"} and not consultation.assigned_at:
+        consultation.assigned_at = datetime.utcnow()
+
+    if new_status in {"answered", "closed"}:
+        consultation.answered_at = datetime.utcnow()
+
+    db.session.commit()
+
+    if previous_status != new_status:
+        status_labels = {
+            "assigned": "قيد التعيين",
+            "in_progress": "قيد المعالجة",
+            "answered": "تم الرد",
+            "closed": "مغلقة",
+            "needs_follow_up": "تحتاج متابعة"
+        }
+        notify_patient(
+            consultation.user_id,
+            "تحديث حالة الاستشارة",
+            f"تم تحديث حالة استشارتك إلى: {status_labels.get(new_status, new_status)}"
+        )
+
+    flash("تم تحديث الحالة", "success")
+    return redirect(url_for('doctor_consultation_detail', consultation_id=consultation.id))
 
 # ------------------- بوابة Admin -------------------
 @app.route('/admin')
@@ -342,30 +677,149 @@ def consult_doctor():
         return redirect(url_for('login'))
     
     if request.method == 'POST':
-        # إنشاء استشارة جديدة
-        consultation = Consultation(
-            user_id=session['user_id'],  # استخدم session بدلاً من current_user
-            specialization=request.form.get('specialization'),
-            question=request.form.get('question'),
-            description=request.form.get('description'),
-            question_for=request.form.get('question_for'),
-            gender=request.form.get('gender'),
-            age=int(request.form.get('age')),
-            medical_history=request.form.get('medical_history'),
-            phone_number=request.form.get('phone_number'),
-            contact_method=request.form.get('contact_method'),
-            status='pending'
-        )
-        
-        # حفظ في قاعدة البيانات
+        errors = validate_consultation_form(request.form)
+        if errors:
+            for error in errors:
+                flash(error, 'danger')
+            return render_template('consult_doctor.html', form_data=request.form)
+
+        consultation = build_consultation_from_form(request.form, session['user_id'])
         db.session.add(consultation)
+
+        assigned_doctor = auto_assign_doctor(consultation)
+        if assigned_doctor:
+            consultation.doctor_id = assigned_doctor.id
+            consultation.status = 'assigned'
+            consultation.assigned_at = datetime.utcnow()
+            notify_doctor(assigned_doctor, consultation)
+            notify_patient(
+                consultation.user_id,
+                "استشارة جديدة",
+                f"تم استلام استشارتك وتحويلها إلى د. {assigned_doctor.name}"
+            )
+        else:
+            notify_patient(
+                consultation.user_id,
+                "استشارة قيد الانتظار",
+                "تم استلام استشارتك وسنحولها إلى طبيب مختص في أقرب وقت"
+            )
+
         db.session.commit()
-        
-        flash('تم إرسال استشارتك بنجاح! سيتم التواصل معك قريباً.', 'success')
-        return redirect(url_for('consult_doctor'))
-    
+
+        flash('تم إرسال استشارتك بنجاح! يمكنك متابعة حالتها في سجل الاستشارات.', 'success')
+        return redirect(url_for('consultations_history'))
+
     # عرض صفحة الفورم
     return render_template('consult_doctor.html')
+
+
+@app.route('/consultations', methods=['GET'])
+def consultations_history():
+    if 'user_id' not in session:
+        flash("يجب تسجيل الدخول أولاً", "danger")
+        return redirect(url_for('login'))
+
+    consultations = (
+        Consultation.query
+        .filter_by(user_id=session['user_id'])
+        .order_by(Consultation.created_at.desc())
+        .all()
+    )
+
+    return render_template('consultations.html', consultations=consultations)
+
+
+@app.route('/consultations/<int:consultation_id>/reply', methods=['POST'])
+def doctor_reply(consultation_id):
+    payload = request.get_json(silent=True)
+    is_json_request = payload is not None
+
+    if payload is None:
+        payload = request.form
+
+    doctor = get_logged_in_doctor()
+    doctor_id = None
+
+    if doctor is not None:
+        doctor_id = doctor.id
+    else:
+        doctor_id = payload.get('doctor_id')
+        if not doctor_id:
+            if is_json_request:
+                return jsonify({'status': 'error', 'message': 'doctor_id is required'}), 400
+            flash("يجب تحديد الطبيب المجيب", "danger")
+            return redirect(request.referrer or url_for('portal_choice'))
+
+        try:
+            doctor_id = int(doctor_id)
+        except (TypeError, ValueError):
+            if is_json_request:
+                return jsonify({'status': 'error', 'message': 'doctor_id must be an integer'}), 400
+            flash("معرف الطبيب غير صحيح", "danger")
+            return redirect(request.referrer or url_for('portal_choice'))
+
+        doctor = Doctor.query.get(doctor_id)
+        if not doctor:
+            if is_json_request:
+                return jsonify({'status': 'error', 'message': 'doctor not found'}), 404
+            flash("لم يتم العثور على الطبيب", "danger")
+            return redirect(request.referrer or url_for('portal_choice'))
+
+    reply_text = payload.get('reply') or payload.get('response')
+    if not reply_text or not str(reply_text).strip():
+        if is_json_request:
+            return jsonify({'status': 'error', 'message': 'reply text is required'}), 400
+        flash("الرجاء كتابة الرد قبل الإرسال", "danger")
+        return redirect(request.referrer or url_for('doctor_dashboard'))
+
+    consultation = Consultation.query.get_or_404(consultation_id)
+
+    if consultation.doctor_id not in (None, doctor.id):
+        if is_json_request:
+            return jsonify({'status': 'error', 'message': 'consultation assigned to another doctor'}), 403
+        flash("هذه الاستشارة مخصصة لطبيب آخر", "danger")
+        return redirect(url_for('doctor_dashboard'))
+
+    reply_text = str(reply_text).strip()
+
+    response = ConsultationResponse(
+        consultation_id=consultation.id,
+        doctor_id=doctor.id,
+        body=reply_text
+    )
+
+    db.session.add(response)
+
+    if consultation.doctor_id is None:
+        consultation.doctor_id = doctor.id
+
+    if consultation.status not in {'answered', 'closed'}:
+        consultation.status = 'answered'
+
+    if not consultation.assigned_at:
+        consultation.assigned_at = datetime.utcnow()
+
+    consultation.answered_at = datetime.utcnow()
+
+    notify_patient(
+        consultation.user_id,
+        "رد الطبيب",
+        reply_text
+    )
+
+    db.session.commit()
+
+    if is_json_request:
+        return jsonify({
+            'status': 'success',
+            'consultation_id': consultation.id,
+            'doctor_id': doctor.id,
+            'reply': reply_text,
+            'created_at': response.created_at.isoformat()
+        })
+
+    flash("تم إرسال الرد للمريض", "success")
+    return redirect(url_for('doctor_consultation_detail', consultation_id=consultation.id))
 # ------------------- جدولة استشارة -------------------
 @app.route('/schedule_consultation/<int:doctor_id>', methods=['GET', 'POST'])
 def schedule_consultation(doctor_id):
@@ -373,26 +827,8 @@ def schedule_consultation(doctor_id):
         flash("يجب تسجيل الدخول أولاً", "danger")
         return redirect(url_for('login'))
     
-    if request.method == 'POST':
-        consultation_type = request.form.get('consultation_type')  # chat/video/in_person/phone
-        date_str = request.form.get('date')
-        date = datetime.strptime(date_str, "%Y-%m-%d %H:%M") if date_str else datetime.utcnow()
-        notes = request.form.get('notes')
-
-        new_consultation = Consultation(
-            user_id=session['user_id'],
-            doctor_id=doctor_id,
-            date=date,
-            consultation_type=consultation_type,
-            notes=notes,
-            status="pending"
-        )
-        db.session.add(new_consultation)
-        db.session.commit()
-        flash("تم جدولة الاستشارة!", "success")
-        return redirect(url_for('consultations'))
-
-    return render_template('schedule_consultation.html', doctor_id=doctor_id)
+    flash("ميزة جدولة الاستشارات المباشرة سيتم دمجها في سير العمل الجديد قريباً.", "info")
+    return redirect(url_for('consultations_history'))
 
 # ------------------- عرض التقارير الطبية -------------------
 @app.route('/medical_reports')

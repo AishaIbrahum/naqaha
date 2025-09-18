@@ -1,5 +1,5 @@
 from app import app, db
-from models import User, Company, Admin, Package, Booking, Consultation, Invoice, Payment, MedicalReport, Notification, AdminAction
+from models import User, Company, Admin, Doctor, Package, Booking, Consultation, Invoice, Payment, MedicalReport, Notification, AdminAction
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 
@@ -46,6 +46,20 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
 
+    # -------------------- طبيب --------------------
+    doctor = Doctor.query.filter_by(email="doctor@test.com").first()
+    if not doctor:
+        doctor = Doctor(
+            name="د. أحمد العتيبي",
+            specialty="طب عام",
+            email="doctor@test.com",
+            password=generate_password_hash("doctor123"),
+            status="available",
+            company_id=company.id if company else None
+        )
+        db.session.add(doctor)
+        db.session.commit()
+
     # -------------------- باقة --------------------
     package = Package.query.filter_by(title="باقة تجريبية").first()
     if not package:
@@ -77,11 +91,17 @@ with app.app_context():
     if not consultation:
         consultation = Consultation(
             user_id=user.id,
-            doctor_id=None,  # مؤقت
-            date=datetime.utcnow(),
-            consultation_type="video",
-            notes="استشارة تجريبية",
-            status="pending"
+            doctor_id=None,
+            specialization="طب عام",
+            question="استشارة تجريبية",
+            description="هذه استشارة تجريبية تم إنشاؤها بواسطة seed script",
+            question_for="نفسي",
+            gender=user.gender,
+            age=25,
+            medical_history="لا يوجد",
+            phone_number=user.phone,
+            contact_method="WhatsApp",
+            status="new"
         )
         db.session.add(consultation)
         db.session.commit()
