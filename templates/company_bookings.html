@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="company-bookings">
+  <h1 class="section-title">حجوزات {{ company.name if company else '' }}</h1>
+  <p class="subtitle">راجع طلبات الحجز الخاصة بباقاتك، ثم اعتمدها أو ارفضها مع إضافة ملاحظات.</p>
+
+  {% if bookings %}
+    <div class="bookings-list">
+      {% for booking in bookings %}
+        <article class="booking-card status-{{ booking.status }}">
+          <header>
+            <div>
+              <h2>{{ booking.package.title if booking.package else 'حجز' }}</h2>
+              <span class="status-pill status-{{ booking.status }}">
+                {{ status_labels.get(booking.status, booking.status) }}
+              </span>
+            </div>
+            <div class="details">
+              <span>العميل: {{ booking.user.first_name if booking.user else 'مستخدم' }}</span>
+              <span>تاريخ الطلب: {{ booking.requested_at.strftime('%Y-%m-%d %H:%M') if booking.requested_at else '—' }}</span>
+              <span>الموعد: {{ booking.scheduled_for.strftime('%Y-%m-%d %H:%M') if booking.scheduled_for else '—' }}</span>
+            </div>
+          </header>
+
+          <div class="content">
+            <div class="services">
+              <h3>الخدمات المطلوبة</h3>
+              {% if booking.selected_services %}
+                <ul>
+                  {% for service in booking.selected_services %}
+                    <li>
+                      <strong>{{ service.service_name }}</strong>
+                      {% if service.service_price is not none %}
+                        <span>{{ '%.2f' | format(service.service_price) }} ر.س</span>
+                      {% endif %}
+                      {% if service.service_description %}
+                        <p>{{ service.service_description }}</p>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p>لم يتم اختيار خدمات محددة.</p>
+              {% endif %}
+            </div>
+
+            <div class="notes">
+              <h3>ملاحظات العميل</h3>
+              <p>{{ booking.notes or 'لا توجد ملاحظات' }}</p>
+            </div>
+
+            <div class="history">
+              <h3>سجل الحالة</h3>
+              {% if booking.status_history %}
+                <ul>
+                  {% for history in booking.status_history|reverse %}
+                    <li>
+                      <div class="history-head">
+                        <strong>{{ status_labels.get(history.status, history.status) }}</strong>
+                        <small>{{ history.created_at.strftime('%Y-%m-%d %H:%M') if history.created_at else '' }}</small>
+                      </div>
+                      {% if history.note %}
+                        <p>{{ history.note }}</p>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p>لا يوجد سجل بعد.</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <footer>
+            {% if booking.status == 'pending' %}
+              <form action="{{ url_for('company_booking_decision', booking_id=booking.id) }}" method="POST" class="decision">
+                <label>أضف ملاحظة (اختياري):</label>
+                <textarea name="note" rows="2" placeholder="اكتب أي ملاحظة للعميل"></textarea>
+                <div class="actions">
+                  <button type="submit" name="decision" value="approved" class="btn-approve">اعتماد</button>
+                  <button type="submit" name="decision" value="rejected" class="btn-reject">رفض</button>
+                </div>
+              </form>
+            {% else %}
+              <p class="decision-info">تم اتخاذ القرار لهذا الحجز.</p>
+            {% endif %}
+          </footer>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>لا توجد حجوزات حالياً</h2>
+      <p>عند تقديم المستخدمين لحجوزات جديدة ستظهر هنا للمراجعة.</p>
+    </div>
+  {% endif %}
+</section>
+
+<style>
+  .company-bookings {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+  }
+
+  .section-title {
+    margin-bottom: 8px;
+    font-size: 1.9rem;
+    color: var(--text-primary);
+  }
+
+  .subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .bookings-list {
+    display: grid;
+    gap: 20px;
+  }
+
+  .booking-card {
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 24px;
+    display: grid;
+    gap: 18px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  header h2 {
+    margin: 0 0 6px;
+    color: var(--text-primary);
+  }
+
+  .details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-secondary);
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .status-pending { background: rgba(255, 193, 7, 0.15); color: #b45309; }
+  .status-approved { background: rgba(0, 168, 168, 0.2); color: var(--secondary-color); }
+  .status-rejected { background: rgba(239, 68, 68, 0.15); color: #b91c1c; }
+  .status-completed { background: rgba(40, 167, 69, 0.15); color: var(--success-color); }
+  .status-cancelled { background: rgba(220, 38, 38, 0.15); color: #b91c1c; }
+
+  .content {
+    display: grid;
+    gap: 16px;
+  }
+
+  .content h3 {
+    margin-bottom: 10px;
+    color: var(--text-primary);
+  }
+
+  .services ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .services li {
+    background: var(--light-bg);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+
+  footer textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #cbd5f5;
+    padding: 12px;
+    resize: vertical;
+    font-size: 0.95rem;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .btn-approve,
+  .btn-reject {
+    flex: 1;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .btn-approve { background: var(--success-color); color: #fff; }
+  .btn-reject { background: #ef4444; color: #fff; }
+
+  .btn-approve:hover { background: #1f9d3b; }
+  .btn-reject:hover { background: #dc2626; }
+
+  .empty-state {
+    background: #fff;
+    border-radius: var(--border-radius);
+    padding: 40px;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+  }
+
+  @media (max-width: 768px) {
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+{% endblock %}

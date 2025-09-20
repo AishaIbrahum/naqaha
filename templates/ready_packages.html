@@ -2,22 +2,178 @@
 
 {% block content %}
 <section class="packages-section">
-  <h1 class="section-title">الباقات الجاهزة</h1>
-  <div class="packages-container">
-    {% if packages %}
-      {% for package in packages %}
-        <div class="package-card">
-          <img src="{{ url_for('static', filename='images/' ~ package.image) }}" 
-               alt="{{ package.title }}">
-          <div class="overlay">
-            <h2>{{ package.title }}</h2>
-            <p>{{ package.description }}</p>
-          </div>
-        </div>
-      {% endfor %}
-    {% else %}
-      <p class="no-packages">لا توجد باقات جاهزة حالياً.</p>
-    {% endif %}
+  <div class="intro">
+    <h1 class="section-title">الباقات الجاهزة</h1>
+    <p>اختر الباقة المناسبة لك، استعرض الخدمات المتاحة داخلها، ثم احجز الموعد الذي يناسبك.</p>
   </div>
+
+  {% if packages %}
+    <div class="packages-grid">
+      {% for package in packages %}
+        <article class="package-card">
+          <div class="image-wrapper">
+            <img src="{{ url_for('static', filename='images/' ~ package.image) }}" alt="{{ package.title }}">
+          </div>
+          <div class="package-content">
+            <h2>{{ package.title }}</h2>
+            <p class="description">{{ package.description }}</p>
+
+            {% if package.services %}
+              <h3>الخدمات المتضمنة</h3>
+              <ul class="services-list">
+                {% for service in package.services %}
+                  <li>
+                    <div class="service-header">
+                      <span class="service-name">{{ service.service_name }}</span>
+                      {% if service.service_price is not none %}
+                        <span class="service-price">{{ '%.2f' | format(service.service_price) }} ر.س</span>
+                      {% endif %}
+                    </div>
+                    {% if service.service_description %}
+                      <p>{{ service.service_description }}</p>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="no-services">لم يتم إضافة خدمات لهذه الباقة بعد.</p>
+            {% endif %}
+
+            <div class="actions">
+              <a class="btn" href="{{ url_for('book_package', package_id=package.id) }}">احجز هذه الباقة</a>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>لا توجد باقات جاهزة حالياً</h2>
+      <p>عند إضافة باقات جديدة من قبل الشركات، ستظهر هنا مباشرة.</p>
+    </div>
+  {% endif %}
 </section>
+
+<style>
+  .packages-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+  }
+
+  .intro {
+    margin-bottom: 24px;
+  }
+
+  .intro p {
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .package-card {
+    background: #fff;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .image-wrapper {
+    height: 180px;
+    background: var(--light-bg);
+  }
+
+  .image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .package-content {
+    padding: 20px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .package-content h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: var(--text-primary);
+  }
+
+  .description {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .services-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .services-list li {
+    background: var(--light-bg);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .service-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+  }
+
+  .service-price {
+    color: var(--secondary-color);
+    font-weight: 600;
+  }
+
+  .actions {
+    margin-top: auto;
+  }
+
+  .btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+  }
+
+  .btn:hover { opacity: 0.92; }
+
+  .empty-state {
+    background: #fff;
+    border-radius: var(--border-radius);
+    padding: 40px;
+    text-align: center;
+    border: 1px dashed rgba(0,168,168,0.4);
+    box-shadow: var(--shadow-md);
+  }
+
+  .no-services {
+    color: var(--text-secondary);
+    margin: 0;
+  }
+</style>
 {% endblock %}

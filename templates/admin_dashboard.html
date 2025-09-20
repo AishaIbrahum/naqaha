@@ -1,12 +1,67 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة Admin</title>
-</head>
-<body>
-    <h1>مرحبا في لوحة Admin</h1>
-    <p>هنا تعرض إدارة النظام والشركات والأفراد</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<section class="admin-dashboard">
+  <h1 class="section-title">لوحة التحكم</h1>
+  <p class="subtitle">تابع مهام المراجعة والإشراف على المحتوى المقدم من الشركات.</p>
+
+  <div class="cards">
+    <article class="card">
+      <h2>طلبات الباقات قيد المراجعة</h2>
+      <p class="count">{{ pending_packages }}</p>
+      <a class="cta" href="{{ url_for('admin_packages') }}">عرض وإدارة الطلبات</a>
+    </article>
+  </div>
+</section>
+
+<style>
+  .admin-dashboard {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+
+  .section-title {
+    margin-bottom: 8px;
+    font-size: 2rem;
+    color: #1e293b;
+  }
+
+  .subtitle {
+    color: #475569;
+    margin-bottom: 24px;
+  }
+
+  .cards {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 35px rgba(15, 23, 42, 0.08);
+    padding: 24px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .count {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #2563eb;
+    margin: 0;
+  }
+
+  .cta {
+    justify-self: start;
+    padding: 10px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}

@@ -1,5 +1,27 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify
-from models import db, User, Company, Admin, Doctor, Package, Appointment, DoctorMessage, PaymentPlan, HealthCard, Invoice, Booking, Consultation, ConsultationResponse, MedicalReport, Payment, Notification, AdminAction
+from models import (
+    db,
+    User,
+    Company,
+    Admin,
+    Doctor,
+    Package,
+    PackageService,
+    BookingServiceSelection,
+    BookingStatusHistory,
+    Appointment,
+    DoctorMessage,
+    PaymentPlan,
+    HealthCard,
+    Invoice,
+    Booking,
+    Consultation,
+    ConsultationResponse,
+    MedicalReport,
+    Payment,
+    Notification,
+    AdminAction,
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
@@ -9,6 +31,9 @@ from datetime import datetime
 from functools import wraps
 import os
 import re
+
+from sqlalchemy import case
+from sqlalchemy.orm import joinedload
 
 app = Flask(__name__)
 app.secret_key = "secretkey123"
@@ -175,6 +200,39 @@ def notify_patient(user_id, title, message):
     db.session.add(notification)
     return notification
 
+
+def notify_company(company_id, title, message):
+    if not company_id:
+        return None
+
+    notification = Notification(
+        company_id=company_id,
+        title=title,
+        body=message
+    )
+    db.session.add(notification)
+    return notification
+
+
+def get_logged_in_admin():
+    admin_id = session.get('admin_id')
+    if not admin_id:
+        return None
+    return Admin.query.get(admin_id)
+
+
+def admin_login_required(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        admin = get_logged_in_admin()
+        if not admin:
+            flash("يجب تسجيل دخول الأدمن أولاً", "danger")
+            next_url = request.url if request.method == 'GET' else request.referrer
+            return redirect(url_for('admin_login', next=next_url))
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
 # ------------------- الصفحات -------------------
 @app.route('/')
 def portal_choice():
@@ -273,7 +331,8 @@ def company_register():
 @app.route('/company_dashboard')
 def company_dashboard():
     if 'company_id' in session:
-        return render_template('company_dashboard.html')
+        company = Company.query.get(session['company_id'])
+        return render_template('company_dashboard.html', company=company, user=None)
     return redirect(url_for('company_login'))
 
 # ------------------- بوابة الأطباء -------------------
@@ -471,7 +530,7 @@ def doctor_update_consultation_status(consultation_id):
 # ------------------- بوابة Admin -------------------
 @app.route('/admin')
 def admin_portal():
-    return render_template('admin_login.html')
+    return render_template('admin_login.html', next=request.args.get('next'), user=None)
 
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
@@ -482,10 +541,11 @@ def admin_login():
         if admin and check_password_hash(admin.password, password):
             session['admin_id'] = admin.id
             flash("تم تسجيل دخول الأدمن!", "success")
-            return redirect(url_for('add_package'))
+            next_url = request.args.get('next') or request.form.get('next')
+            return redirect(next_url or url_for('admin_dashboard'))
         else:
             flash("البريد أو كلمة السر خاطئة!", "danger")
-    return render_template('admin_login.html')
+    return render_template('admin_login.html', next=request.args.get('next'), user=None)
 
 @app.route('/admin_register', methods=['GET', 'POST'])
 def admin_register():
@@ -500,10 +560,88 @@ def admin_register():
     return render_template('admin_register.html')
 
 @app.route('/admin_dashboard')
+@admin_login_required
 def admin_dashboard():
-    if 'admin_id' in session:
-        return render_template('admin_dashboard.html')
-    return redirect(url_for('admin_login'))
+    pending_count = Package.query.filter_by(status='pending').count()
+    return render_template('admin_dashboard.html', pending_packages=pending_count, user=None)
+
+
+@app.route('/admin/packages')
+@admin_login_required
+def admin_packages():
+    status_order = case(
+        (Package.status == 'pending', 0),
+        (Package.status == 'approved', 1),
+        else_=2
+    )
+
+    packages = (
+        Package.query
+        .options(
+            joinedload(Package.services),
+            joinedload(Package.provider)
+        )
+        .order_by(status_order, Package.status_updated_at.desc().nullslast())
+        .all()
+    )
+
+    status_labels = {
+        'pending': 'قيد المراجعة',
+        'approved': 'معتمد',
+        'rejected': 'مرفوض'
+    }
+
+    return render_template('admin_packages.html', packages=packages, status_labels=status_labels, user=None)
+    
+
+
+@app.route('/admin/packages/<int:package_id>/decision', methods=['POST'])
+@admin_login_required
+def admin_package_decision(package_id):
+    admin = get_logged_in_admin()
+    package = Package.query.get_or_404(package_id)
+
+    decision = request.form.get('decision')
+    note = (request.form.get('note') or '').strip()
+
+    if decision not in {'approve', 'reject'}:
+        flash('قرار غير صالح', 'danger')
+        return redirect(url_for('admin_packages'))
+
+    if decision == 'reject' and not note:
+        flash('يرجى كتابة ملاحظات سبب الرفض', 'danger')
+        return redirect(url_for('admin_packages'))
+
+    if decision == 'approve':
+        package.status = 'approved'
+        package.admin_note = None
+        package.approved_by = admin.id
+        package.status_updated_at = datetime.utcnow()
+
+        notify_company(
+            package.provider_id,
+            'تم اعتماد الباقة',
+            f"تمت الموافقة على باقتكم '{package.title}' وهي متاحة الآن للعملاء."
+        )
+
+        flash('تم اعتماد الباقة بنجاح', 'success')
+
+    else:
+        package.status = 'rejected'
+        package.admin_note = note
+        package.approved_by = admin.id
+        package.status_updated_at = datetime.utcnow()
+
+        notify_company(
+            package.provider_id,
+            'تم رفض الباقة',
+            f"تم رفض باقتكم '{package.title}'. السبب: {note}"
+        )
+
+        flash('تم رفض الباقة', 'info')
+
+    db.session.commit()
+    return redirect(url_for('admin_packages'))
 
 # ------------------- تسجيل الخروج -------------------
 @app.route('/logout')
@@ -525,43 +663,256 @@ def recreation():
 # ------------------- صفحة الباقات الجاهزة -------------------
 @app.route('/ready-packages')
 def ready_packages():
-    all_packages = Package.query.all()
-    return render_template('ready_packages.html', packages=all_packages)
+    all_packages = (
+        Package.query
+        .options(joinedload(Package.services))
+        .filter(Package.status == 'approved')
+        .order_by(Package.id.desc())
+        .all()
+    )
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+
+    return render_template('ready_packages.html', packages=all_packages, user=user)
 
 # ------------------- إضافة باقة جديدة -------------------
 @app.route("/add_package", methods=["GET", "POST"])
 def add_package():
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل دخول الشركة لإضافة باقة", "danger")
+        return redirect(url_for('company_login'))
+
+    company = Company.query.get_or_404(company_id)
+
     if request.method == "POST":
-        title = request.form["title"]
-        description = request.form["description"]
+        title = request.form.get("title", "").strip()
+        description = request.form.get("description", "").strip()
 
-        file = request.files["image"]
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(filepath)
+        service_names = request.form.getlist('service_name[]')
+        service_descriptions = request.form.getlist('service_description[]')
+        service_prices = request.form.getlist('service_price[]')
 
-            new_package = Package(
-                title=title,
-                description=description,
-                image=filename
-            )
-            db.session.add(new_package)
-            db.session.commit()
+        if not title or not description:
+            flash("الرجاء تعبئة جميع الحقول المطلوبة", "danger")
+            return render_template("add_package.html", company=company)
 
-            flash("تمت إضافة الباقة بنجاح!", "success")
-            return redirect(url_for("ready_packages"))  # بعد إضافة الباقة، ارجع للصفحة الجاهزة
+        if not service_names or all(not name.strip() for name in service_names):
+            flash("أضف خدمة واحدة على الأقل للباقة", "danger")
+            return render_template("add_package.html", company=company)
 
-        else:
+        file = request.files.get("image")
+        if not file or not allowed_file(file.filename):
             flash("صيغة الصورة غير مدعومة", "danger")
+            return render_template("add_package.html", company=company)
 
-    return render_template("add_package.html")
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(filepath)
+
+        new_package = Package(
+            title=title,
+            description=description,
+            image=filename,
+            provider_id=company.id,
+            status="pending",
+            status_updated_at=datetime.utcnow()
+        )
+        db.session.add(new_package)
+        db.session.flush()
+
+        for name, desc, price in zip(service_names, service_descriptions, service_prices):
+            name = (name or "").strip()
+            desc = (desc or "").strip()
+            price_value = None
+            if not name:
+                continue
+            try:
+                price_value = float(price) if price else 0.0
+            except ValueError:
+                price_value = 0.0
+
+            service = PackageService(
+                package_id=new_package.id,
+                service_name=name,
+                service_description=desc or None,
+                service_price=price_value
+            )
+            db.session.add(service)
+
+        notify_company(
+            company.id,
+            "قيد المراجعة",
+            f"تم استلام طلب إضافة الباقة '{new_package.title}' وسيتم مراجعته من قبل الأدمن."
+        )
+
+        db.session.commit()
+        flash("تم إرسال الطلب للمراجعة!", "success")
+        return redirect(url_for("company_dashboard"))
+
+    return render_template("add_package.html", company=company)
+
+
+@app.route('/company/packages')
+def company_packages():
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل دخول الشركة", "danger")
+        return redirect(url_for('company_login'))
+
+    company = Company.query.get_or_404(company_id)
+    packages = (
+        Package.query
+        .filter_by(provider_id=company.id)
+        .options(joinedload(Package.services))
+        .order_by(Package.status_updated_at.desc().nullslast())
+        .all()
+    )
+
+    recent_notifications = (
+        Notification.query
+        .filter_by(company_id=company.id)
+        .order_by(Notification.created_at.desc())
+        .limit(10)
+        .all()
+    )
+
+    status_labels = {
+        'pending': 'قيد المراجعة',
+        'approved': 'معتمد',
+        'rejected': 'مرفوض'
+    }
+
+    return render_template(
+        'company_packages.html',
+        company=company,
+        packages=packages,
+        status_labels=status_labels,
+        notifications=recent_notifications,
+        user=None
+    )
+
+
+@app.route('/company/bookings', methods=['GET'])
+def company_bookings():
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل دخول الشركة", "danger")
+        return redirect(url_for('company_login'))
+
+    company = Company.query.get_or_404(company_id)
+
+    bookings = (
+        Booking.query
+        .filter_by(company_id=company.id)
+        .options(
+            joinedload(Booking.package),
+            joinedload(Booking.user),
+            joinedload(Booking.selected_services),
+            joinedload(Booking.status_history)
+        )
+        .order_by(Booking.requested_at.desc())
+        .all()
+    )
+
+    status_labels = {
+        'pending': 'قيد المراجعة',
+        'approved': 'موافق عليه',
+        'completed': 'مكتمل',
+        'cancelled': 'ملغي',
+        'rejected': 'مرفوض'
+    }
+
+    return render_template(
+        'company_bookings.html',
+        company=company,
+        bookings=bookings,
+        status_labels=status_labels,
+        user=None
+    )
+
+
+@app.route('/company/bookings/<int:booking_id>/decision', methods=['POST'])
+def company_booking_decision(booking_id):
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل دخول الشركة", "danger")
+        return redirect(url_for('company_login'))
+
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.company_id != company_id:
+        flash("لا تملك صلاحية هذا الحجز", "danger")
+        return redirect(url_for('company_bookings'))
+
+    decision = request.form.get('decision')
+    note = (request.form.get('note') or '').strip()
+
+    allowed_decisions = {'approved', 'rejected'}
+    if decision not in allowed_decisions:
+        flash('قرار غير صالح', 'danger')
+        return redirect(url_for('company_bookings'))
+
+    if decision == 'rejected' and not note:
+        flash('يرجى توضيح سبب الرفض للعميل', 'danger')
+        return redirect(url_for('company_bookings'))
+
+    booking.status = decision
+    history_entry = BookingStatusHistory(
+        booking_id=booking.id,
+        status=decision,
+        note=note or None
+    )
+    db.session.add(history_entry)
+
+    status_labels = {
+        'approved': 'موافق عليه',
+        'rejected': 'مرفوض'
+    }
+
+    if decision == 'approved':
+        message = (
+            f"تمت موافقة الشركة على حجز '{booking.package.title if booking.package else ''}'. "
+            "يرجى إتمام عملية الدفع لإكمال الحجز."
+        )
+        if note:
+            message += f" ملاحظة الشركة: {note}"
+    else:
+        message = (
+            f"تم رفض حجز '{booking.package.title if booking.package else ''}'."
+            + (f" السبب: {note}" if note else '')
+        )
+
+    notify_patient(booking.user_id, 'تحديث حالة الحجز', message)
+
+    db.session.commit()
+
+    flash('تم تحديث حالة الحجز', 'success')
+    return redirect(url_for('company_bookings'))
 
 @app.route('/appointments')
 def appointments():
-    user_id = session.get("user_id", 1)  # مؤقتاً
-    appointments = Appointment.query.filter_by(user_id=user_id).all()
-    return render_template('appointments.html', appointments=appointments)
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("يجب تسجيل الدخول أولاً", "danger")
+        return redirect(url_for('login'))
+
+    appointments = (
+        Appointment.query
+        .filter_by(user_id=user_id)
+        .options(
+            joinedload(Appointment.bookings)
+            .joinedload(Booking.selected_services),
+            joinedload(Appointment.bookings).joinedload(Booking.package),
+            joinedload(Appointment.bookings).joinedload(Booking.invoices)
+        )
+        .order_by(Appointment.date.desc())
+        .all()
+    )
+
+    user = User.query.get(user_id)
+
+    return render_template('appointments.html', appointments=appointments, user=user)
 
 
 
@@ -600,6 +951,92 @@ def bookings():
     return render_template('bookings.html', bookings=all_bookings)
 
 
+@app.route('/booking/<int:booking_id>/payment', methods=['GET', 'POST'])
+def booking_payment(booking_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        flash("يجب تسجيل الدخول أولاً", "danger")
+        return redirect(url_for('login'))
+
+    booking = (
+        Booking.query
+        .options(
+            joinedload(Booking.package),
+            joinedload(Booking.selected_services),
+            joinedload(Booking.invoices)
+        )
+        .get_or_404(booking_id)
+    )
+
+    if booking.user_id != user_id:
+        flash("لا تملك صلاحية لهذا الحجز", "danger")
+        return redirect(url_for('appointments'))
+
+    invoice = booking.invoices[0] if booking.invoices else None
+    service_total = sum([s.service_price or 0 for s in booking.selected_services])
+
+    if invoice is None:
+        invoice = Invoice(
+            user_id=user_id,
+            booking_id=booking.id,
+            amount=service_total,
+            status='unpaid'
+        )
+        db.session.add(invoice)
+        db.session.commit()
+
+    if request.method == 'POST':
+        try:
+            amount = float(request.form.get('amount') or invoice.amount or 0)
+        except ValueError:
+            amount = 0
+
+        payment_method = request.form.get('payment_method', 'card')
+
+        if amount < 0:
+            flash("المبلغ غير صالح", "danger")
+            return redirect(url_for('booking_payment', booking_id=booking.id))
+
+        payment = Payment(
+            invoice_id=invoice.id,
+            amount=amount,
+            method=payment_method,
+            status='completed',
+            paid_at=datetime.utcnow()
+        )
+
+        invoice.amount = amount
+        invoice.status = 'paid'
+        invoice.paid_at = datetime.utcnow()
+
+        booking.status = 'completed'
+        history_entry = BookingStatusHistory(
+            booking_id=booking.id,
+            status='completed',
+            note='تم الدفع الإلكتروني وإتمام الحجز'
+        )
+        db.session.add(history_entry)
+        db.session.add(payment)
+
+        notify_company(
+            booking.company_id,
+            'تم إتمام الحجز',
+            f"قام المستخدم بإكمال الدفع لحجز الباقة '{booking.package.title if booking.package else ''}'."
+        )
+
+        db.session.commit()
+        flash("تم الدفع بنجاح!", "success")
+        return redirect(url_for('appointments'))
+
+    return render_template(
+        'payment.html',
+        booking=booking,
+        invoice=invoice,
+        service_total=service_total,
+        user=User.query.get(user_id)
+    )
+
+
 # ------------------- إنشاء حجز جديد -------------------
 @app.route('/book_package/<int:package_id>', methods=['GET', 'POST'])
 def book_package(package_id):
@@ -607,27 +1044,132 @@ def book_package(package_id):
         flash("يجب تسجيل الدخول أولاً", "danger")
         return redirect(url_for('login'))
     
-    package = Package.query.get_or_404(package_id)
-    
-    if request.method == 'POST':
-        scheduled_for_str = request.form.get('scheduled_for')
-        scheduled_for = datetime.strptime(scheduled_for_str, "%Y-%m-%d %H:%M") if scheduled_for_str else None
-        notes = request.form.get('notes')
+    user_id = session['user_id']
+    user = User.query.get(user_id)
 
-        new_booking = Booking(
-            user_id=session['user_id'],
+    package = (
+        Package.query
+        .options(joinedload(Package.services))
+        .get_or_404(package_id)
+    )
+
+    if package.status != 'approved':
+        flash("هذه الباقة غير متاحة للحجز حالياً", "danger")
+        return redirect(url_for('ready_packages'))
+
+    if not package.services:
+        flash("هذه الباقة لا تحتوي على خدمات متاحة للحجز حالياً", "danger")
+        return redirect(url_for('ready_packages'))
+
+    if request.method == 'POST':
+        service_ids_raw = request.form.getlist('service_ids')
+        notes = request.form.get('notes')
+        contact_method = request.form.get('contact_method')
+        scheduled_for_str = request.form.get('scheduled_for')
+
+        if not service_ids_raw:
+            flash("يرجى اختيار خدمة واحدة على الأقل", "danger")
+            return redirect(url_for('book_package', package_id=package.id))
+
+        try:
+            service_ids = [int(value) for value in service_ids_raw]
+        except ValueError:
+            flash("معرّفات الخدمات غير صحيحة", "danger")
+            return redirect(url_for('book_package', package_id=package.id))
+
+        try:
+            scheduled_for = datetime.strptime(scheduled_for_str, "%Y-%m-%dT%H:%M") if scheduled_for_str else None
+        except ValueError:
+            scheduled_for = None
+
+        if not scheduled_for:
+            flash("يرجى تحديد تاريخ ووقت الحجز", "danger")
+            return redirect(url_for('book_package', package_id=package.id))
+
+        services = (
+            PackageService.query
+            .filter(
+                PackageService.id.in_(service_ids),
+                PackageService.package_id == package.id
+            )
+            .all()
+        )
+
+        if len(services) != len(service_ids):
+            flash("تم العثور على خدمات غير صالحة في الطلب", "danger")
+            return redirect(url_for('book_package', package_id=package.id))
+
+        if not package.provider_id:
+            flash("لا يمكن إتمام الحجز لأن الباقة غير مرتبطة بشركة مقدمة.", "danger")
+            return redirect(url_for('ready_packages'))
+
+        note_details = notes.strip() if notes else ""
+        if contact_method:
+            contact_note = f"طريقة التواصل المفضلة: {contact_method}"
+            note_details = f"{note_details}\n{contact_note}" if note_details else contact_note
+
+        appointment = Appointment(
+            user_id=user_id,
+            company_id=package.provider_id,
+            date=scheduled_for,
+            notes=note_details
+        )
+        db.session.add(appointment)
+        db.session.flush()
+
+        booking = Booking(
+            user_id=user_id,
             package_id=package.id,
+            appointment_id=appointment.id,
             company_id=package.provider_id,
             scheduled_for=scheduled_for,
-            notes=notes,
+            notes=note_details,
             status="pending"
         )
-        db.session.add(new_booking)
-        db.session.commit()
-        flash("تم إنشاء الحجز بنجاح!", "success")
-        return redirect(url_for('bookings'))
+        db.session.add(booking)
+        db.session.flush()
 
-    return render_template('book_package.html', package=package)
+        total_amount = 0.0
+
+        for service in services:
+            selection = BookingServiceSelection(
+                booking_id=booking.id,
+                package_service_id=service.id,
+                service_name=service.service_name,
+                service_description=service.service_description,
+                service_price=service.service_price
+            )
+            db.session.add(selection)
+            if service.service_price:
+                total_amount += service.service_price
+
+        invoice = Invoice(
+            user_id=user_id,
+            booking_id=booking.id,
+            amount=total_amount,
+            status='unpaid'
+        )
+        db.session.add(invoice)
+
+        history_entry = BookingStatusHistory(
+            booking_id=booking.id,
+            status='pending',
+            note='تم إرسال طلب الحجز (بانتظار موافقة الشركة)'
+        )
+        db.session.add(history_entry)
+
+        notify_company(
+            package.provider_id,
+            'طلب حجز جديد',
+            f"لديك طلب حجز جديد لباقتك '{package.title}' من المستخدم {user.first_name if user else user_id}."
+        )
+
+        db.session.commit()
+        flash("تم إرسال طلب الحجز بنجاح، سنقوم بالتواصل معك قريباً", "success")
+        return redirect(url_for('appointments'))
+
+    selected_services = package.services
+    return render_template('book_package.html', package=package, services=selected_services, user=user)
 
 
 # ------------------- تعديل حالة الحجز (Admin) -------------------
@@ -639,8 +1181,39 @@ def update_booking_status(booking_id):
     
     booking = Booking.query.get_or_404(booking_id)
     new_status = request.form.get('status')  # pending / approved / rejected / completed / cancelled
+    note = (request.form.get('note') or '').strip()
+
+    previous_status = booking.status
     booking.status = new_status
+    db.session.add(BookingStatusHistory(
+        booking_id=booking.id,
+        status=new_status,
+        note=note or None
+    ))
+
     db.session.commit()
+
+    status_labels = {
+        'pending': 'قيد المراجعة',
+        'approved': 'موافق عليه',
+        'completed': 'مكتمل',
+        'cancelled': 'ملغي',
+        'rejected': 'مرفوض'
+    }
+
+    if previous_status != new_status:
+        package_title = booking.package.title if booking.package else 'حجزك'
+        message = (
+            f"تم تحديث حالة حجز '{package_title}' إلى {status_labels.get(new_status, new_status)}"
+            + (f". ملاحظة الأدمن: {note}" if note else '')
+        )
+
+        notify_patient(
+            booking.user_id,
+            'تحديث حالة الحجز',
+            message
+        )
+
     flash("تم تحديث حالة الحجز!", "success")
     return redirect(url_for('admin_dashboard'))
 
@@ -883,7 +1456,8 @@ def payments():
         return redirect(url_for('login'))
 
     payments = Payment.query.join(Invoice).filter(Invoice.user_id==user_id).all()
-    return render_template('payments.html', payments=payments)
+    user = User.query.get(user_id)
+    return render_template('payments.html', payments=payments, user=user)
 
 
 # ------------------- تسجيل دفعة جديدة -------------------

@@ -1,11 +1,323 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>مواعيدي</h2>
-<ul>
-  {% for a in appointments %}
-    <li>{{ a.date.strftime("%Y-%m-%d %H:%M") }} - {{ a.doctor }} ({{ a.notes }})</li>
+{% set status_labels = {
+  'pending': 'قيد المراجعة',
+  'approved': 'موافق عليه',
+  'completed': 'مكتمل',
+  'cancelled': 'ملغي',
+  'rejected': 'مرفوض'
+} %}
+<section class="appointments-section">
+  <h1 class="section-title">مواعيدي وحجوزاتي</h1>
+
+  {% if appointments %}
+    <div class="appointments-grid">
+      {% for appointment in appointments %}
+        {% set booking = appointment.bookings[0] if appointment.bookings else None %}
+        <article class="appointment-card">
+          <header class="appointment-header">
+            <div>
+              <h2>موعد بتاريخ {{ appointment.date.strftime('%Y-%m-%d %H:%M') }}</h2>
+              {% if booking and booking.package %}
+                <p class="package-name">الباقة: {{ booking.package.title }}</p>
+              {% endif %}
+            </div>
+            <div class="status">
+              {% if booking %}
+                حالة الحجز:
+                <span class="status-pill status-{{ booking.status|replace(' ', '_') }}">
+                  {{ status_labels.get(booking.status, booking.status) }}
+                </span>
+              {% else %}
+                موعد فردي
+              {% endif %}
+            </div>
+          </header>
+
+          <div class="appointment-body">
+            <div class="detail">
+              <span>ملاحظات</span>
+              <p>{{ appointment.notes or '—' }}</p>
+            </div>
+
+            {% if booking %}
+              <div class="detail">
+                <span>تاريخ الطلب</span>
+                <p>{{ booking.requested_at.strftime('%Y-%m-%d %H:%M') if booking.requested_at else '—' }}</p>
+              </div>
+
+              <div class="detail">
+                <span>الخدمات المختارة</span>
+                {% if booking.selected_services %}
+                  <ul class="services-list">
+                    {% for service in booking.selected_services %}
+                      <li>
+                        <strong>{{ service.service_name }}</strong>
+                        {% if service.service_price is not none %}
+                          <span>{{ '%.2f' | format(service.service_price) }} ر.س</span>
+                        {% endif %}
+                        {% if service.service_description %}
+                          <p>{{ service.service_description }}</p>
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p>لم يتم اختيار خدمات لهذه الباقة.</p>
+                {% endif %}
+              </div>
+
+              {% set invoice = booking.invoices[0] if booking.invoices else None %}
+              <div class="detail payment-detail">
+                <span>الدفع</span>
+                {% if invoice %}
+                  <div class="payment-info">
+                    <p>المبلغ الإجمالي: <strong>{{ '%.2f' | format(invoice.amount or 0) }} ر.س</strong></p>
+                    <p>حالة الفاتورة: <span class="badge badge-{{ invoice.status }}">{{ invoice.status == 'paid' and 'مدفوعة' or 'غير مدفوعة' }}</span></p>
+                    {% if invoice.paid_at %}
+                      <p>تاريخ الدفع: {{ invoice.paid_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <p>لم يتم إنشاء فاتورة بعد.</p>
+                {% endif %}
+
+                {% if invoice and invoice.status != 'paid' %}
+                  <a class="pay-btn" href="{{ url_for('booking_payment', booking_id=booking.id) }}">إتمام الدفع</a>
+                {% endif %}
+              </div>
+
+              {% if booking.status_history %}
+                <div class="detail">
+                  <span>سجل حالة الحجز</span>
+                  <ul class="status-history">
+                    {% for history in booking.status_history|reverse %}
+                      <li>
+                        <div class="history-status">
+                          <strong>{{ status_labels.get(history.status, history.status) }}</strong>
+                          <small>{{ history.created_at.strftime('%Y-%m-%d %H:%M') if history.created_at else '' }}</small>
+                        </div>
+                        {% if history.note %}
+                          <p>{{ history.note }}</p>
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
   {% else %}
-    <p>لا توجد مواعيد.</p>
-  {% endfor %}
-</ul>
+    <div class="empty-state">
+      <h2>لا توجد مواعيد أو حجوزات بعد</h2>
+      <p>ابدأ بحجز إحدى الباقات الجاهزة أو جدولة موعد جديد للاستفادة من خدمات نقاهة.</p>
+      <a class="cta" href="{{ url_for('ready_packages') }}">استعراض الباقات الجاهزة</a>
+    </div>
+  {% endif %}
+</section>
+
+<style>
+  .appointments-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+  }
+
+  .section-title {
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+    color: var(--text-primary);
+  }
+
+  .appointments-grid {
+    display: grid;
+    gap: 20px;
+  }
+
+  .appointment-card {
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .appointment-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(0,168,168,0.12) 0%, rgba(0,128,128,0.12) 100%);
+  }
+
+  .appointment-header h2 {
+    margin: 0 0 6px;
+    font-size: 1.3rem;
+  }
+
+  .package-name {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  .status {
+    align-self: center;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-right: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .status-pending { background: rgba(255, 193, 7, 0.18); color: #b45309; }
+  .status-approved { background: rgba(0, 168, 168, 0.18); color: var(--secondary-color); }
+  .status-completed { background: rgba(40, 167, 69, 0.18); color: var(--success-color); }
+  .status-cancelled, .status-rejected { background: rgba(239, 68, 68, 0.18); color: #b91c1c; }
+
+  .appointment-body {
+    padding: 20px 24px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .detail span {
+    display: block;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 6px;
+  }
+
+  .services-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .services-list li {
+    background: var(--light-bg);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .services-list li strong {
+    display: inline-block;
+    margin-right: 8px;
+  }
+
+  .services-list li span {
+    color: #1d4ed8;
+    font-weight: 600;
+  }
+
+  .status-history {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .status-history li {
+    background: var(--light-bg);
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 10px 12px;
+  }
+
+  .history-status {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-primary);
+  }
+
+  .history-status small {
+    color: var(--text-secondary);
+  }
+
+  .payment-detail .payment-info {
+    display: grid;
+    gap: 6px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    background: rgba(0,0,0,0.05);
+  }
+  .badge-paid { color: var(--success-color); }
+  .badge-unpaid { color: #b91c1c; }
+
+  .pay-btn {
+    display: inline-flex;
+    margin-top: 12px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .pay-btn:hover {
+    opacity: 0.92;
+  }
+
+  .empty-state {
+    background: #fff;
+    border-radius: var(--border-radius);
+    padding: 40px;
+    text-align: center;
+    border: 1px dashed rgba(0,168,168,0.4);
+    box-shadow: var(--shadow-md);
+  }
+
+  .empty-state h2 {
+    margin-bottom: 12px;
+    color: var(--text-primary);
+  }
+
+  .empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+  }
+
+  .empty-state .cta {
+    display: inline-flex;
+    padding: 12px 24px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .appointment-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .status {
+      align-self: flex-start;
+    }
+  }
+</style>
 {% endblock %}

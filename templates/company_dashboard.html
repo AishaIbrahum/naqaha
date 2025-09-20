@@ -1,12 +1,72 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الشركات</title>
-</head>
-<body>
-    <h1>مرحبا في لوحة الشركات</h1>
-    <p>هنا تعرض بيانات الشركة والخدمات التي تقدمها</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<section class="company-dashboard">
+  <h1 class="section-title">مرحباً {{ company.name if company else '' }}</h1>
+  <p class="subtitle">قم بإدارة باقاتك ومتابعة طلبات الاعتماد من هنا.</p>
+
+  <div class="cards">
+    <article class="card">
+      <h2>إضافة باقة جديدة</h2>
+      <p>أرسل باقة بخدماتك ليقوم فريق نقاهة بمراجعتها واعتمادها.</p>
+      <a class="cta" href="{{ url_for('add_package') }}">إضافة باقة</a>
+    </article>
+
+    <article class="card">
+      <h2>باقاتي</h2>
+      <p>استعرض حالة كل باقة والملاحظات من فريق الأدمن.</p>
+      <a class="cta" href="{{ url_for('company_packages') }}">عرض الباقات</a>
+    </article>
+
+    <article class="card">
+      <h2>حجوزات العملاء</h2>
+      <p>راجع طلبات الحجز وقم باعتمادها أو رفضها مع إضافة ملاحظات.</p>
+      <a class="cta" href="{{ url_for('company_bookings') }}">إدارة الحجوزات</a>
+    </article>
+  </div>
+</section>
+
+<style>
+  .company-dashboard {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+
+  .section-title {
+    margin-bottom: 8px;
+    font-size: 2rem;
+    color: #1e293b;
+  }
+
+  .subtitle {
+    color: #475569;
+    margin-bottom: 24px;
+  }
+
+  .cards {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 35px rgba(15, 23, 42, 0.08);
+    padding: 24px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .cta {
+    justify-self: start;
+    padding: 10px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}

@@ -1,13 +1,164 @@
-<!-- admin/add_package.html -->
-<form method="POST" enctype="multipart/form-data">
-  <label>العنوان</label>
-  <input type="text" name="title" required>
+<form method="POST" enctype="multipart/form-data" class="package-form">
+  <h1>إضافة باقة جديدة</h1>
 
-  <label>الوصف</label>
-  <textarea name="description" required></textarea>
+  <div class="form-group">
+    <label>اسم الباقة</label>
+    <input type="text" name="title" required>
+  </div>
 
-  <label>رفع صورة</label>
-  <input type="file" name="image" accept="image/*" required>
+  <div class="form-group">
+    <label>الوصف</label>
+    <textarea name="description" rows="4" required></textarea>
+  </div>
 
-  <button type="submit">إضافة</button>
+  <div class="form-group">
+    <label>صورة الباقة</label>
+    <input type="file" name="image" accept="image/*" required>
+  </div>
+
+  <div class="services-wrapper">
+    <div class="services-header">
+      <h2>الخدمات داخل الباقة</h2>
+      <button type="button" id="add-service" class="btn-secondary">إضافة خدمة</button>
+    </div>
+
+    <div id="services-list">
+      <div class="service-item">
+        <input type="text" name="service_name[]" placeholder="اسم الخدمة" required>
+        <textarea name="service_description[]" placeholder="وصف مختصر"></textarea>
+        <input type="number" step="0.01" name="service_price[]" placeholder="السعر (اختياري)">
+        <button type="button" class="remove-service" aria-label="حذف الخدمة">×</button>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn-primary">حفظ الباقة</button>
+
+  <style>
+    .package-form {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: var(--border-radius);
+      padding: 30px;
+      box-shadow: var(--shadow-lg);
+      display: grid;
+      gap: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="file"],
+    textarea {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #cbd5f5;
+      padding: 12px;
+      font-size: 1rem;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .services-wrapper {
+      background: var(--light-bg);
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 18px;
+    }
+
+    .services-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    #services-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .service-item {
+      display: grid;
+      gap: 10px;
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 16px;
+      position: relative;
+    }
+
+    .service-item .remove-service {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #ef4444;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      border: 1px solid var(--secondary-color);
+      color: var(--secondary-color);
+      border-radius: 10px;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover,
+    .btn-secondary:hover {
+      opacity: 0.92;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const addButton = document.getElementById('add-service');
+      const servicesList = document.getElementById('services-list');
+
+      addButton.addEventListener('click', () => {
+        const template = document.createElement('div');
+        template.className = 'service-item';
+        template.innerHTML = `
+          <input type="text" name="service_name[]" placeholder="اسم الخدمة" required>
+          <textarea name="service_description[]" placeholder="وصف مختصر"></textarea>
+          <input type="number" step="0.01" name="service_price[]" placeholder="السعر (اختياري)">
+          <button type="button" class="remove-service" aria-label="حذف الخدمة">×</button>
+        `;
+        servicesList.appendChild(template);
+      });
+
+      servicesList.addEventListener('click', (event) => {
+        if (event.target.classList.contains('remove-service')) {
+          const item = event.target.closest('.service-item');
+          if (servicesList.children.length > 1) {
+            item.remove();
+          }
+        }
+      });
+    });
+  </script>
 </form>

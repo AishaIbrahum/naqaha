@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="booking-section">
+  <div class="breadcrumb">
+    <a href="{{ url_for('ready_packages') }}">الباقات الجاهزة</a>
+    <span>/</span>
+    <span>{{ package.title }}</span>
+  </div>
+
+  <div class="booking-layout">
+    <article class="package-summary">
+      <img src="{{ url_for('static', filename='images/' ~ package.image) }}" alt="{{ package.title }}">
+      <div class="info">
+        <h1>{{ package.title }}</h1>
+        <p>{{ package.description }}</p>
+
+        {% if services %}
+          <h2>الخدمات المتاحة داخل الباقة</h2>
+          <ul>
+            {% for service in services %}
+              <li>
+                <div class="service-head">
+                  <strong>{{ service.service_name }}</strong>
+                  {% if service.service_price is not none %}
+                    <span>{{ '%.2f' | format(service.service_price) }} ر.س</span>
+                  {% endif %}
+                </div>
+                {% if service.service_description %}
+                  <p>{{ service.service_description }}</p>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </article>
+
+    <aside class="booking-form-card">
+      <h2>احجز موعدك</h2>
+      <form method="POST" class="booking-form">
+        <div class="form-group">
+          <label>اختر الخدمات المطلوبة</label>
+          <div class="services-options">
+            {% for service in services %}
+              <label class="service-option">
+                <input type="checkbox" name="service_ids" value="{{ service.id }}" data-price="{{ service.service_price or 0 }}">
+                <span>
+                  <strong>{{ service.service_name }}</strong>
+                  {% if service.service_price is not none %}
+                    <small>{{ '%.2f' | format(service.service_price) }} ر.س</small>
+                  {% endif %}
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="scheduled_for">حدد تاريخ ووقت الموعد</label>
+          <input type="datetime-local" id="scheduled_for" name="scheduled_for" required>
+        </div>
+
+        <div class="form-group">
+          <label for="contact_method">طريقة التواصل المفضلة</label>
+          <select id="contact_method" name="contact_method">
+            <option value="">اختر</option>
+            <option value="WhatsApp">واتساب</option>
+            <option value="Call">اتصال هاتفي</option>
+            <option value="Email">بريد إلكتروني</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">ملاحظات إضافية</label>
+          <textarea id="notes" name="notes" placeholder="اكتب أي تفاصيل أو احتياجات خاصة..." rows="4"></textarea>
+        </div>
+
+        <div class="summary">
+          <span>الإجمالي المبدئي</span>
+          <strong id="total">0.00 ر.س</strong>
+        </div>
+
+        <button type="submit" class="btn-primary">تأكيد الحجز</button>
+      </form>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .booking-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+  }
+
+  .breadcrumb a {
+    color: var(--secondary-color);
+    text-decoration: none;
+  }
+
+  .booking-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+
+  .package-summary {
+    background: #fff;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: grid;
+    gap: 0;
+  }
+
+  .package-summary img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+  }
+
+  .package-summary .info {
+    padding: 22px 24px 28px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .package-summary ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .package-summary li {
+    background: var(--light-bg);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .service-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .booking-form-card {
+    background: #fff;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-lg);
+    padding: 24px;
+    height: fit-content;
+  }
+
+  .booking-form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+  }
+
+  .services-options {
+    display: grid;
+    gap: 12px;
+  }
+
+  .service-option {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: var(--light-bg);
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.06);
+    padding: 10px 12px;
+  }
+
+  .service-option input {
+    width: 18px;
+    height: 18px;
+  }
+
+  .service-option strong {
+    display: block;
+    color: var(--text-primary);
+  }
+
+  .service-option small {
+    color: var(--secondary-color);
+  }
+
+  input[type="datetime-local"],
+  select,
+  textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #cbd5f5;
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  textarea { resize: vertical; }
+
+  .summary {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(0,168,168,0.08);
+    border-radius: 14px;
+    padding: 14px;
+    font-weight: 600;
+    color: var(--secondary-color);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .btn-primary:hover { opacity: 0.92; }
+
+  @media (max-width: 992px) {
+    .booking-layout { grid-template-columns: 1fr; }
+    .package-summary img { height: 200px; }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('input[name="service_ids"]');
+    const totalElement = document.getElementById('total');
+
+    function computeTotal() {
+      let total = 0;
+      let anySelected = false;
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          anySelected = true;
+          total += parseFloat(cb.dataset.price || 0);
+        }
+      });
+      totalElement.textContent = total.toFixed(2) + ' ر.س';
+      checkboxes.forEach(input => input.required = !anySelected);
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', computeTotal));
+    computeTotal();
+  });
+</script>
+{% endblock %}

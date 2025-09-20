@@ -86,6 +86,8 @@ class Package(db.Model):
     provider_id = db.Column(db.Integer, db.ForeignKey('company.id'))
     approved_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
     status = db.Column(db.String(50), default="pending")
+    admin_note = db.Column(db.Text)
+    status_updated_at = db.Column(db.DateTime)
 
     services = db.relationship("PackageService", backref="package", lazy=True)
     bookings = db.relationship("Booking", backref="package", lazy=True)
@@ -95,6 +97,21 @@ class Package(db.Model):
 class PackageService(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     package_id = db.Column(db.Integer, db.ForeignKey('package.id'))
+    service_name = db.Column(db.String(100))
+    service_description = db.Column(db.Text)
+    service_price = db.Column(db.Float)
+
+    selections = db.relationship(
+        "BookingServiceSelection",
+        backref="package_service",
+        lazy=True
+    )
+
+
+class BookingServiceSelection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=False)
+    package_service_id = db.Column(db.Integer, db.ForeignKey('package_service.id'), nullable=True)
     service_name = db.Column(db.String(100))
     service_description = db.Column(db.Text)
     service_price = db.Column(db.Float)
@@ -155,6 +172,27 @@ class Booking(db.Model):
     invoices = db.relationship('Invoice', backref='booking', lazy=True)
     consultations = db.relationship('Consultation', backref='booking', lazy=True)
     medical_reports = db.relationship('MedicalReport', backref='booking', lazy=True)
+    selected_services = db.relationship(
+        'BookingServiceSelection',
+        backref='booking',
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+    status_history = db.relationship(
+        'BookingStatusHistory',
+        backref='booking',
+        lazy=True,
+        cascade="all, delete-orphan",
+        order_by="BookingStatusHistory.created_at.desc()"
+    )
+
+
+class BookingStatusHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=False)
+    status = db.Column(db.String(50), nullable=False)
+    note = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # -------------------- جدول الفواتير --------------------

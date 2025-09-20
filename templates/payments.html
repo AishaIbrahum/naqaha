@@ -1,27 +1,101 @@
-<h2>المدفوعات</h2>
-<table border="1">
-    <tr>
-        <th>الفاتورة</th>
-        <th>المبلغ</th>
-        <th>طريقة الدفع</th>
-        <th>الحالة</th>
-        <th>إجراءات</th>
-    </tr>
-    {% for payment in payments %}
-    <tr>
-        <td>{{ payment.invoice.id }}</td>
-        <td>{{ payment.amount }}</td>
-        <td>{{ payment.method }}</td>
-        <td>{{ payment.status }}</td>
-        <td>
-            {% if payment.status != 'completed' %}
-            <form action="{{ url_for('make_payment', invoice_id=payment.invoice.id) }}" method="POST">
-                <input type="hidden" name="amount" value="{{ payment.amount }}">
-                <input type="hidden" name="method" value="card">
-                <button type="submit">دفع الآن</button>
-            </form>
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+{% extends "base.html" %}
+{% block content %}
+<section class="payments-section">
+  <h1 class="section-title">سجل المدفوعات</h1>
+  <p class="subtitle">تابع الدفعات التي قمت بها لباقاتك وخططك العلاجية.</p>
+
+  {% if payments %}
+    <table class="payments-table">
+      <thead>
+        <tr>
+          <th>رقم الفاتورة</th>
+          <th>المبلغ</th>
+          <th>طريقة الدفع</th>
+          <th>الحالة</th>
+          <th>تاريخ الدفع</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in payments %}
+          <tr>
+            <td>#{{ payment.invoice.id }}</td>
+            <td>{{ '%.2f' | format(payment.amount or 0) }} ر.س</td>
+            <td>{{ payment.method }}</td>
+            <td><span class="badge badge-{{ payment.status }}">{{ payment.status == 'completed' and 'مكتمل' or payment.status }}</span></td>
+            <td>{{ payment.paid_at.strftime('%Y-%m-%d %H:%M') if payment.paid_at else '—' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      <h2>لا توجد مدفوعات مسجلة</h2>
+      <p>بمجرد إتمام أي عملية دفع، ستظهر تفاصيلها هنا.</p>
+    </div>
+  {% endif %}
+</section>
+
+<style>
+  .payments-section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .payments-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+
+  .payments-table thead {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #fff;
+  }
+
+  .payments-table th,
+  .payments-table td {
+    padding: 14px 18px;
+    text-align: center;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .payments-table tbody tr:hover {
+    background: rgba(0,168,168,0.08);
+  }
+
+  .empty-state {
+    background: #fff;
+    border-radius: var(--border-radius);
+    padding: 40px;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  .badge-completed { background: rgba(40, 167, 69, 0.15); color: var(--success-color); }
+  .badge-pending { background: rgba(255, 193, 7, 0.18); color: #b45309; }
+</style>
+{% endblock %}
