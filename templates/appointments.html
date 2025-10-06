@@ -2,7 +2,7 @@
 {% block content %}
 {% set status_labels = {
   'pending': 'قيد المراجعة',
-  'approved': 'موافق عليه',
+  'approved': 'بانتظار الدفع',
   'completed': 'مكتمل',
   'cancelled': 'ملغي',
   'rejected': 'مرفوض'
@@ -71,9 +71,10 @@
               <div class="detail payment-detail">
                 <span>الدفع</span>
                 {% if invoice %}
+                  {% set invoice_label = 'مدفوعة' if invoice.status == 'paid' else 'ملغاة' if invoice.status == 'cancelled' else 'غير مدفوعة' %}
                   <div class="payment-info">
                     <p>المبلغ الإجمالي: <strong>{{ '%.2f' | format(invoice.amount or 0) }} ر.س</strong></p>
-                    <p>حالة الفاتورة: <span class="badge badge-{{ invoice.status }}">{{ invoice.status == 'paid' and 'مدفوعة' or 'غير مدفوعة' }}</span></p>
+                    <p>حالة الفاتورة: <span class="badge badge-{{ invoice.status }}">{{ invoice_label }}</span></p>
                     {% if invoice.paid_at %}
                       <p>تاريخ الدفع: {{ invoice.paid_at.strftime('%Y-%m-%d %H:%M') }}</p>
                     {% endif %}
@@ -82,8 +83,14 @@
                   <p>لم يتم إنشاء فاتورة بعد.</p>
                 {% endif %}
 
-                {% if invoice and invoice.status != 'paid' %}
+                {% if invoice and invoice.status != 'paid' and booking.status == 'approved' %}
                   <a class="pay-btn" href="{{ url_for('booking_payment', booking_id=booking.id) }}">إتمام الدفع</a>
+                {% elif booking.status == 'pending' %}
+                  <p class="pending-note">الحجز قيد المراجعة من قبل الشركة.</p>
+                {% elif booking.status == 'approved' and not invoice %}
+                  <p class="pending-note">سيتم تفعيل الدفع بمجرد إنشاء الفاتورة.</p>
+                {% elif invoice and invoice.status != 'paid' and booking.status != 'approved' %}
+                  <p class="pending-note">سيتم تفعيل الدفع بعد اعتماد الحجز.</p>
                 {% endif %}
               </div>
 
@@ -278,6 +285,12 @@
 
   .pay-btn:hover {
     opacity: 0.92;
+  }
+
+  .pending-note {
+    margin-top: 10px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
   }
 
   .empty-state {

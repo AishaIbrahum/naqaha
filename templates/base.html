@@ -11,54 +11,89 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg sticky-top bg-light">
-  <div class="container d-flex align-items-center justify-content-between">
+{% set user_logged_in = user is defined and user %}
+{% set company_logged_in = session.get('company_id') %}
+{% set doctor_logged_in = session.get('doctor_id') %}
+{% set admin_logged_in = session.get('admin_id') %}
+
+<nav class="navbar navbar-expand-lg sticky-top primary-navbar">
+  <div class="container">
 
     <!-- الشعار -->
-    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('individual_index') }}">
+    {% if company_logged_in %}
+      <a class="navbar-brand d-flex align-items-center" href="{{ url_for('company_dashboard') }}">
+    {% elif doctor_logged_in %}
+      <a class="navbar-brand d-flex align-items-center" href="{{ url_for('doctor_dashboard') }}">
+    {% elif admin_logged_in %}
+      <a class="navbar-brand d-flex align-items-center" href="{{ url_for('admin_dashboard') }}">
+    {% else %}
+      <a class="navbar-brand d-flex align-items-center" href="{{ url_for('individual_index') }}">
+    {% endif %}
         <img src="{{ url_for('static', filename='images/logo.jpg') }}" 
              alt="نقاهة Logo" width="40" height="40" class="me-2 rounded-circle">
         <span>نقاهة</span>
     </a>
 
-    <!-- الملف الشخصي -->
-    {% if user %}
-    <div class="dropdown">
-        <img src="{{ user.profile_image or 'https://plus.unsplash.com/premium_photo-1664300894274-cfdf8cd3af6e?q=80&w=1170' }}" 
-             alt="Profile" class="profile-img dropdown-toggle rounded-circle" 
-             id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" width="40" height="40">
-        <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
-            <li>
-                <div class="dropdown-header text-center">
-                    <img src="{{ user.profile_image or 'https://plus.unsplash.com/premium_photo-1664300894274-cfdf8cd3af6e?q=80&w=1170' }}" 
-                         alt="Profile" class="rounded-circle" width="80" height="80">
-                    <h5>{{ user.first_name }} {{ user.last_name }}</h5>
-                    <p>{{ user.username }} | {{ user.email }}</p>
-                </div>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-check"></i>مواعيدي</a></li>
-            <li><a class="dropdown-item" href="#"><i class="fas fa-user-md"></i>تواصلي مع الأطباء</a></li>
-            <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i>معلوماتي الشخصية</a></li>
-            <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> الأعداد</a></li>
-            <li><a class="dropdown-item" href="#"><i class="fas fa-credit-card"></i>الفواتير وخطط الدفع</a></li>
-            <li><a class="dropdown-item" href="#"><i class="fas fa-address-card"></i>بطاقتي الصحية</a></li>
-            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</a></li>
-        </ul>
-    </div>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- الملف الشخصي / روابط سريعة -->
+    {% if user_logged_in %}
+      <div class="dropdown">
+          <img src="{{ user.profile_image or 'https://plus.unsplash.com/premium_photo-1664300894274-cfdf8cd3af6e?q=80&w=1170' }}" 
+               alt="Profile" class="profile-img dropdown-toggle rounded-circle" 
+               id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" width="40" height="40">
+          <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
+              <li>
+                  <div class="dropdown-header text-center">
+                      <img src="{{ user.profile_image or 'https://plus.unsplash.com/premium_photo-1664300894274-cfdf8cd3af6e?q=80&w=1170' }}" 
+                           alt="Profile" class="rounded-circle" width="80" height="80">
+                      <h5>{{ user.first_name }} {{ user.last_name }}</h5>
+                      <p>{{ user.username }} | {{ user.email }}</p>
+                  </div>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{{ url_for('appointments') }}"><i class="fas fa-calendar-check"></i>مواعيدي</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('consultations_history') }}"><i class="fas fa-history"></i>سجل الاستشارات</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('payments') }}"><i class="fas fa-credit-card"></i>مدفوعاتي</a></li>
+              <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</a></li>
+          </ul>
+      </div>
+    {% elif company_logged_in %}
+      <a class="nav-action" href="{{ url_for('company_dashboard') }}">لوحة الشركة</a>
+    {% elif doctor_logged_in %}
+      <a class="nav-action" href="{{ url_for('doctor_dashboard') }}">لوحة الأطباء</a>
+    {% elif admin_logged_in %}
+      <a class="nav-action" href="{{ url_for('admin_dashboard') }}">لوحة الأدمن</a>
     {% endif %}
 
     <!-- روابط القائمة -->
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav d-flex flex-row gap-3 mx-auto">
-            <li class="nav-item"><a class="nav-link active" href="{{ url_for('individual_index') }}">الرئيسية</a></li>
-            <li class="nav-item"><a class="nav-link" href="#services">من نحن</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('ready_packages') }}">الحزم الجاهزة</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('custom_plan') }}">اصنع خطتك</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('consult_doctor') }}">استشر طبيب</a></li>
-            <li class="nav-item"><a class="nav-link" href="#testimonials">آراء العملاء</a></li>
-            <li class="nav-item"><a class="nav-link" href="#contact">اتصل بنا</a></li>
+            {% if user_logged_in or (not company_logged_in and not doctor_logged_in and not admin_logged_in) %}
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('individual_index') }}">الرئيسية</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('ready_packages') }}">الحزم الجاهزة</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('custom_plan') }}">اصنع خطتك</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('consult_doctor') }}">استشر طبيب</a></li>
+            {% elif company_logged_in %}
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('company_dashboard') }}">لوحة الشركة</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('company_packages') }}">باقاتي</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('company_bookings') }}">حجوزات العملاء</a></li>
+            {% elif doctor_logged_in %}
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('doctor_dashboard') }}">لوحة الأطباء</a></li>
+            {% elif admin_logged_in %}
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}">لوحة الأدمن</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_packages') }}">طلبات الباقات</a></li>
+            {% endif %}
         </ul>
+        {% if not user_logged_in and not company_logged_in and not doctor_logged_in and not admin_logged_in %}
+        <div class="nav-actions d-flex gap-2">
+          <a class="nav-action" href="{{ url_for('login') }}">دخول الأفراد</a>
+          <a class="nav-action" href="{{ url_for('company_login') }}">دخول الشركات</a>
+          <a class="nav-action" href="{{ url_for('admin_login') }}">دخول الأدمن</a>
+        </div>
+        {% endif %}
     </div>
 
   </div>

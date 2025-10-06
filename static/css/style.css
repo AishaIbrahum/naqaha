@@ -49,3 +49,82 @@ button.btn:hover {
   background: rgba(239, 68, 68, 0.15);
   color: #b91c1c;
 }
+
+
+.primary-navbar {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  box-shadow: var(--shadow-sm);
+}
+
+.primary-navbar .navbar-brand span {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.primary-navbar .navbar-brand img {
+  border: 2px solid rgba(255,255,255,0.4);
+}
+
+.primary-navbar .nav-link {
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.primary-navbar .nav-link:hover,
+.primary-navbar .nav-link:focus,
+.primary-navbar .nav-link.active {
+  color: var(--accent-color);
+}
+
+.nav-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+}
+
+.nav-action:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.profile-dropdown {
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: none;
+  overflow: hidden;
+}
+
+.profile-dropdown .dropdown-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--text-primary);
+}
+
+.profile-dropdown .dropdown-item i {
+  color: var(--secondary-color);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-toggler {
+  border: 1px solid rgba(255,255,255,0.6);
+}
+
+.navbar-toggler-icon {
+  filter: invert(1);
+}
+
+.badge-cancelled { background: rgba(239,68,68,0.15); color: #b91c1c; }

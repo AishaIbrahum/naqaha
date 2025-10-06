@@ -15,9 +15,10 @@
         <span>موعد التنفيذ</span>
         <strong>{{ booking.scheduled_for.strftime('%Y-%m-%d %H:%M') if booking.scheduled_for else '—' }}</strong>
       </div>
+      {% set invoice_label = 'مدفوعة' if invoice.status == 'paid' else 'ملغاة' if invoice.status == 'cancelled' else 'غير مدفوعة' %}
       <div class="row">
         <span>حالة الدفع</span>
-        <strong class="badge badge-{{ invoice.status }}">{{ invoice.status == 'paid' and 'مدفوعة' or 'غير مدفوعة' }}</strong>
+        <strong class="badge badge-{{ invoice.status }}">{{ invoice_label }}</strong>
       </div>
 
       <h3>الخدمات المختارة</h3>
@@ -45,6 +46,12 @@
         <div class="paid-state">
           <h2>تم الدفع مسبقاً</h2>
           <p>يمكنك العودة إلى صفحة المواعيد لمتابعة حجزك.</p>
+          <a class="btn" href="{{ url_for('appointments') }}">العودة إلى المواعيد</a>
+        </div>
+      {% elif invoice.status == 'cancelled' %}
+        <div class="paid-state">
+          <h2>تم إلغاء الفاتورة</h2>
+          <p>تم رفض الحجز أو إلغاؤه من قبل الشركة.</p>
           <a class="btn" href="{{ url_for('appointments') }}">العودة إلى المواعيد</a>
         </div>
       {% else %}

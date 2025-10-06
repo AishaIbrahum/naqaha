@@ -1,72 +1,273 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="company-dashboard">
-  <h1 class="section-title">مرحباً {{ company.name if company else '' }}</h1>
-  <p class="subtitle">قم بإدارة باقاتك ومتابعة طلبات الاعتماد من هنا.</p>
+  <header class="dashboard-header">
+    <div>
+      <h1>مرحبا {{ company.name if company else '' }}</h1>
+      <p>استعرض أداء باقاتك، وتتبع الحجوزات والمدفوعات بنظرة واحدة.</p>
+    </div>
+    <div class="actions">
+      <a class="btn primary" href="{{ url_for('add_package') }}">إضافة باقة جديدة</a>
+      <a class="btn outline" href="{{ url_for('company_bookings') }}">إدارة الحجوزات</a>
+    </div>
+  </header>
 
-  <div class="cards">
-    <article class="card">
-      <h2>إضافة باقة جديدة</h2>
-      <p>أرسل باقة بخدماتك ليقوم فريق نقاهة بمراجعتها واعتمادها.</p>
-      <a class="cta" href="{{ url_for('add_package') }}">إضافة باقة</a>
+  <section class="metrics-grid">
+    <article class="metric-card">
+      <span class="label">إجمالي الباقات</span>
+      <h2>{{ metrics.packages.total }}</h2>
+      <small>{{ metrics.packages.pending }} قيد المراجعة</small>
+    </article>
+    <article class="metric-card">
+      <span class="label">الباقات المعتمدة</span>
+      <h2>{{ metrics.packages.approved }}</h2>
+      <small>{{ metrics.packages.rejected }} مرفوضة</small>
+    </article>
+    <article class="metric-card">
+      <span class="label">الحجوزات النشطة</span>
+      <h2>{{ metrics.bookings.pending }}</h2>
+      <small>{{ metrics.bookings.awaiting_payment }} بانتظار الدفع</small>
+    </article>
+    <article class="metric-card">
+      <span class="label">إجمالي الإيرادات</span>
+      <h2>{{ '%.2f' | format(metrics.revenue or 0) }} ر.س</h2>
+      <small>{{ metrics.bookings.completed }} حجوزات مكتملة</small>
+    </article>
+  </section>
+
+  <section class="dashboard-body">
+    <article class="panel">
+      <div class="panel-header">
+        <h2>الحجوزات الأخيرة</h2>
+        <a href="{{ url_for('company_bookings') }}">عرض الكل</a>
+      </div>
+      {% if recent_bookings %}
+        <table>
+          <thead>
+            <tr>
+              <th>الحجز</th>
+              <th>العميل</th>
+              <th>الحالة</th>
+              <th>الموعد</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for booking in recent_bookings %}
+              <tr>
+                <td>{{ booking.package.title if booking.package else '—' }}</td>
+                <td>{{ booking.user.first_name if booking.user else '—' }}</td>
+                <td><span class="status status-{{ booking.status }}">{{ status_labels.get(booking.status, booking.status) }}</span></td>
+                <td>{{ booking.scheduled_for.strftime('%Y-%m-%d %H:%M') if booking.scheduled_for else '—' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="empty-text">لا توجد حجوزات حديثة.</p>
+      {% endif %}
     </article>
 
-    <article class="card">
-      <h2>باقاتي</h2>
-      <p>استعرض حالة كل باقة والملاحظات من فريق الأدمن.</p>
-      <a class="cta" href="{{ url_for('company_packages') }}">عرض الباقات</a>
-    </article>
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <h3>الخدمات الأكثر طلباً</h3>
+        {% if top_services %}
+          <ul>
+            {% for name, usage in top_services %}
+              <li>
+                <span>{{ name }}</span>
+                <strong>{{ usage }}</strong>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="empty-text">لم يتم حجز خدمات بعد.</p>
+        {% endif %}
+      </div>
 
-    <article class="card">
-      <h2>حجوزات العملاء</h2>
-      <p>راجع طلبات الحجز وقم باعتمادها أو رفضها مع إضافة ملاحظات.</p>
-      <a class="cta" href="{{ url_for('company_bookings') }}">إدارة الحجوزات</a>
-    </article>
-  </div>
+      <div class="sidebar-card">
+        <h3>آخر الإشعارات</h3>
+        {% if recent_notifications %}
+          <ul class="notifications">
+            {% for notif in recent_notifications %}
+              <li>
+                <strong>{{ notif.title or 'إشعار' }}</strong>
+                <p>{{ notif.body }}</p>
+                <span>{{ notif.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="empty-text">لا توجد إشعارات جديدة.</p>
+        {% endif %}
+      </div>
+    </aside>
+  </section>
 </section>
 
 <style>
   .company-dashboard {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 40px 20px 60px;
   }
 
-  .section-title {
-    margin-bottom: 8px;
-    font-size: 2rem;
-    color: #1e293b;
-  }
-
-  .subtitle {
-    color: #475569;
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
     margin-bottom: 24px;
   }
 
-  .cards {
-    display: grid;
-    gap: 20px;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  .dashboard-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: var(--text-primary);
   }
 
-  .card {
-    background: #fff;
-    border-radius: 18px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 20px 35px rgba(15, 23, 42, 0.08);
-    padding: 24px;
-    display: grid;
+  .dashboard-header p {
+    margin: 8px 0 0;
+    color: var(--text-secondary);
+  }
+
+  .actions {
+    display: flex;
     gap: 12px;
+    align-items: center;
   }
 
-  .cta {
-    justify-self: start;
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 10px 18px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    color: #fff;
-    text-decoration: none;
     font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+  }
+
+  .btn.primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; }
+  .btn.outline { border: 1px solid var(--secondary-color); color: var(--secondary-color); }
+  .btn:hover { opacity: 0.92; }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .metric-card {
+    background: #fff;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-md);
+    padding: 20px;
+  }
+
+  .metric-card .label { color: var(--text-secondary); display: block; }
+  .metric-card h2 { margin: 12px 0 6px; font-size: 1.8rem; color: var(--text-primary); }
+  .metric-card small { color: var(--text-secondary); }
+
+  .dashboard-body {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+
+  .panel {
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 24px;
+  }
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .panel-header h2 { margin: 0; }
+  .panel-header a { font-size: 0.9rem; color: var(--secondary-color); text-decoration: none; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 12px 14px;
+    text-align: center;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  th {
+    background: rgba(0,168,168,0.12);
+    color: var(--secondary-color);
+  }
+
+  .status {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  .status-approved { background: rgba(0,168,168,0.18); color: var(--secondary-color); }
+  .status-pending { background: rgba(255,193,7,0.18); color: #b45309; }
+  .status-completed { background: rgba(40,167,69,0.18); color: var(--success-color); }
+  .status-rejected, .status-cancelled { background: rgba(239,68,68,0.18); color: #b91c1c; }
+
+  .sidebar {
+    display: grid;
+    gap: 20px;
+  }
+
+  .sidebar-card {
+    background: #fff;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-md);
+    padding: 20px;
+  }
+
+  .sidebar-card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .sidebar-card li {
+    display: flex;
+    justify-content: space-between;
+    background: var(--light-bg);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+
+  .notifications li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .notifications span { color: var(--text-secondary); font-size: 0.85rem; }
+
+  .empty-text {
+    color: var(--text-secondary);
+    text-align: center;
+    margin: 16px 0;
+  }
+
+  @media (max-width: 992px) {
+    .dashboard-body { grid-template-columns: 1fr; }
+    .dashboard-header { flex-direction: column; align-items: flex-start; }
   }
 </style>
 {% endblock %}

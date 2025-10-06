@@ -32,7 +32,7 @@ from functools import wraps
 import os
 import re
 
-from sqlalchemy import case
+from sqlalchemy import case, func
 from sqlalchemy.orm import joinedload
 
 app = Flask(__name__)
@@ -330,10 +330,98 @@ def company_register():
 
 @app.route('/company_dashboard')
 def company_dashboard():
-    if 'company_id' in session:
-        company = Company.query.get(session['company_id'])
-        return render_template('company_dashboard.html', company=company, user=None)
-    return redirect(url_for('company_login'))
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل الدخول للشركة", "danger")
+        return redirect(url_for('company_login'))
+
+    company = Company.query.get_or_404(company_id)
+
+    total_packages = Package.query.filter_by(provider_id=company.id).count()
+    pending_packages = Package.query.filter_by(provider_id=company.id, status='pending').count()
+    approved_packages = Package.query.filter_by(provider_id=company.id, status='approved').count()
+    rejected_packages = Package.query.filter_by(provider_id=company.id, status='rejected').count()
+
+    total_bookings = Booking.query.filter_by(company_id=company.id).count()
+    pending_bookings = Booking.query.filter_by(company_id=company.id, status='pending').count()
+    awaiting_payment = Booking.query.filter_by(company_id=company.id, status='approved').count()
+    completed_bookings = Booking.query.filter_by(company_id=company.id, status='completed').count()
+
+    revenue = (
+        db.session.query(func.coalesce(func.sum(Payment.amount), 0.0))
+        .join(Invoice, Payment.invoice_id == Invoice.id)
+        .join(Booking, Invoice.booking_id == Booking.id)
+        .filter(Booking.company_id == company.id, Payment.status == 'completed')
+        .scalar()
+    )
+
+    recent_bookings = (
+        Booking.query
+        .filter_by(company_id=company.id)
+        .options(
+            joinedload(Booking.user),
+            joinedload(Booking.package)
+        )
+        .order_by(Booking.requested_at.desc())
+        .limit(5)
+        .all()
+    )
+
+    recent_notifications = (
+        Notification.query
+        .filter_by(company_id=company.id)
+        .order_by(Notification.created_at.desc())
+        .limit(5)
+        .all()
+    )
+
+    top_services = (
+        db.session.query(
+            BookingServiceSelection.service_name,
+            func.count(BookingServiceSelection.id).label('usage_count')
+        )
+        .join(Booking, BookingServiceSelection.booking_id == Booking.id)
+        .filter(Booking.company_id == company.id)
+        .group_by(BookingServiceSelection.service_name)
+        .order_by(func.count(BookingServiceSelection.id).desc())
+        .limit(5)
+        .all()
+    )
+
+    status_labels = {
+        'pending': 'قيد المراجعة',
+        'approved': 'بانتظار الدفع',
+        'completed': 'مكتمل',
+        'cancelled': 'ملغي',
+        'rejected': 'مرفوض'
+    }
+
+    metrics = {
+        'packages': {
+            'total': total_packages,
+            'pending': pending_packages,
+            'approved': approved_packages,
+            'rejected': rejected_packages,
+        },
+        'bookings': {
+            'total': total_bookings,
+            'pending': pending_bookings,
+            'awaiting_payment': awaiting_payment,
+            'completed': completed_bookings,
+        },
+        'revenue': revenue or 0.0
+    }
+
+    return render_template(
+        'company_dashboard.html',
+        company=company,
+        metrics=metrics,
+        recent_bookings=recent_bookings,
+        recent_notifications=recent_notifications,
+        top_services=top_services,
+        status_labels=status_labels,
+        user=None
+    )
 
 # ------------------- بوابة الأطباء -------------------
 @app.route('/doctor/login', methods=['GET', 'POST'])
@@ -818,7 +906,7 @@ def company_bookings():
 
     status_labels = {
         'pending': 'قيد المراجعة',
-        'approved': 'موافق عليه',
+        'approved': 'بانتظار الدفع',
         'completed': 'مكتمل',
         'cancelled': 'ملغي',
         'rejected': 'مرفوض'
@@ -856,6 +944,26 @@ def company_booking_decision(booking_id):
     if decision == 'rejected' and not note:
         flash('يرجى توضيح سبب الرفض للعميل', 'danger')
         return redirect(url_for('company_bookings'))
+
+    invoice = booking.invoices[0] if booking.invoices else None
+    if decision == 'approved':
+        total_amount = sum((service.service_price or 0) for service in booking.selected_services)
+        if invoice:
+            invoice.amount = total_amount
+            invoice.status = 'unpaid'
+            invoice.paid_at = None
+        else:
+            invoice = Invoice(
+                user_id=booking.user_id,
+                booking_id=booking.id,
+                amount=total_amount,
+                status='unpaid'
+            )
+            db.session.add(invoice)
+    else:
+        if invoice:
+            invoice.status = 'cancelled'
+            invoice.paid_at = None
 
     booking.status = decision
     history_entry = BookingStatusHistory(
@@ -970,6 +1078,10 @@ def booking_payment(booking_id):
 
     if booking.user_id != user_id:
         flash("لا تملك صلاحية لهذا الحجز", "danger")
+        return redirect(url_for('appointments'))
+
+    if booking.status not in {'approved', 'completed'}:
+        flash("يرجى انتظار موافقة الشركة على الحجز قبل إتمام الدفع", "warning")
         return redirect(url_for('appointments'))
 
     invoice = booking.invoices[0] if booking.invoices else None
