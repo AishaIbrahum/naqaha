@@ -2,33 +2,24 @@ version: "3.1"
 
 intents:
   - greet
+  - ask_prices
+  - ask_services
   - goodbye
-  - affirm
-  - deny
-  - mood_great
-  - mood_unhappy
   - bot_challenge
 
 responses:
   utter_greet:
-  - text: "Hey! How are you?"
+    - text: "أهلًا! 👋 معك مساعد نقاهة، كيف أقدر أساعدك اليوم؟"
+    - text: "Hi! I'm Naqaha’s assistant. How can I help you?"
 
-  utter_cheer_up:
-  - text: "Here is something to cheer you up:"
-    image: "https://i.imgur.com/nGF1K8f.jpg"
+  utter_prices:
+    - text: "أسعار باقات نقاهة تختلف حسب نوع العلاج والمدينة 🌿 مثلاً باقة زراعة الشعر تبدأ من 7500 ريال."
 
-  utter_did_that_help:
-  - text: "Did that help you?"
-
-  utter_happy:
-  - text: "Great, carry on!"
+  utter_services:
+    - text: "نقاهة تقدم باقات علاجية متكاملة تشمل: العلاج، السكن، التنقل، المرافقة الطبية، وخطط التغذية المخصصة 💆‍♀️🚗🏥"
 
   utter_goodbye:
-  - text: "Bye"
-
+    - text: "سعدت بخدمتك! مع السلامة 🌸"
+    
   utter_iamabot:
-  - text: "I am a bot, powered by Rasa."
-
-session_config:
-  session_expiration_time: 60
-  carry_over_slots_to_new_session: true
+    - text: "أنا مساعد ذكي مبني بواسطة Rasa 🤖 وأخدمك عبر نقاهة 🌿"

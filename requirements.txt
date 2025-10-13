@@ -5,6 +5,8 @@ Flask-SQLAlchemy==3.0.5
 # Core Rasa and SDK
 rasa==3.6.20
 rasa-sdk==3.6.2
+python-engineio==4.3.4
+python-socketio==5.4.1
 
 # NLP Models
 transformers>=4.30.0

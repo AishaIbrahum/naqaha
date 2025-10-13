@@ -299,7 +299,7 @@ body {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    z-index: 999;
+    z-index: 1400;
     width: 60px;
     height: 60px;
     background: #25d366;
@@ -317,6 +317,19 @@ body {
 .whatsapp-float:hover {
     transform: scale(1.1);
     color: white;
+}
+
+/* Rasa chat bubble positioning */
+#webchat .rw-widget-container {
+    position: fixed !important;
+    bottom: 30px !important;
+    right: 110px !important;
+    margin: 0 !important;
+    z-index: 1500 !important;
+}
+
+#webchat .rw-launcher {
+    margin: 0 !important;
 }
 
 /* Hero Section */
@@ -1443,6 +1456,16 @@ scroll-margin-top: 100px; /* اضبط الرقم حسب ارتفاع الـ Navb
     
     .floating-appointment {
         bottom: 80px;
+    }
+    
+    .whatsapp-float {
+        bottom: 20px;
+        right: 20px;
+    }
+
+    #webchat .rw-widget-container {
+        bottom: 20px !important;
+        right: 90px !important;
     }
     
     .department-tabs {
