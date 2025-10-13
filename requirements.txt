@@ -1,2 +1,20 @@
+# Web framework
 Flask==2.3.3
 Flask-SQLAlchemy==3.0.5
+
+# Core Rasa and SDK
+rasa==3.6.20
+rasa-sdk==3.6.2
+
+# NLP Models
+transformers>=4.30.0
+torch>=2.0.0
+spacy>=3.6.0
+
+# For multilingual and contextual retrieval
+sentence-transformers>=2.2.2
+haystack-ai>=2.0.0
+
+# Optional web tools
+uvicorn>=0.23.0
+fastapi>=0.110.0
