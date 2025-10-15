@@ -1,19 +1,66 @@
 version: "3.1"
 
 stories:
-- story: greet and ask services
+- story: greet and ask services ar
   steps:
-    - intent: greet
-    - action: utter_greet
-    - intent: ask_services
-    - action: utter_services
+    - intent: greet_ar
+    - action: utter_greet_ar
+    - intent: ask_services_ar
+    - action: utter_services_ar
 
-- story: ask prices
+- story: greet and ask services en
   steps:
-    - intent: ask_prices
-    - action: utter_prices
+    - intent: greet_en
+    - action: utter_greet_en
+    - intent: ask_services_en
+    - action: utter_services_en
 
-- story: goodbye
+- story: ask prices ar
   steps:
-    - intent: goodbye
-    - action: utter_goodbye
+    - intent: ask_prices_ar
+    - action: utter_prices_ar
+
+- story: ask prices en
+  steps:
+    - intent: ask_prices_en
+    - action: utter_prices_en
+
+- story: ask package types ar
+  steps:
+    - intent: ask_package_types_ar
+    - action: utter_package_types_ar
+
+- story: ask package types en
+  steps:
+    - intent: ask_package_types_en
+    - action: utter_package_types_en
+
+- story: goodbye ar
+  steps:
+    - intent: goodbye_ar
+    - action: utter_goodbye_ar
+
+- story: goodbye en
+  steps:
+    - intent: goodbye_en
+    - action: utter_goodbye_en
+
+- story: ask customization ar
+  steps:
+    - intent: ask_package_customization_ar
+    - action: utter_package_customization_ar
+
+- story: ask customization en
+  steps:
+    - intent: ask_package_customization_en
+    - action: utter_package_customization_en
+
+- story: compare packages ar
+  steps:
+    - intent: ask_package_comparison_ar
+    - action: utter_package_comparison_ar
+
+- story: compare packages en
+  steps:
+    - intent: ask_package_comparison_en
+    - action: utter_package_comparison_en

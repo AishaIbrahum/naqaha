@@ -2,10 +2,15 @@ version: "3.1"
 
 rules:
 
-- rule: Say goodbye anytime the user says goodbye
+- rule: Say goodbye in Arabic
   steps:
-  - intent: goodbye
-  - action: utter_goodbye
+  - intent: goodbye_ar
+  - action: utter_goodbye_ar
+
+- rule: Say goodbye in English
+  steps:
+  - intent: goodbye_en
+  - action: utter_goodbye_en
 
 - rule: Say 'I am a bot' anytime the user challenges
   steps:

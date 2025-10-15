@@ -1,36 +1,119 @@
 version: "3.1"
 
 nlu:
-- intent: greet
+- intent: greet_ar
   examples: |
     - مرحبا
-    -السلام عليكم 
+    - السلام عليكم
     - سلام
     - اهلين
     - اهلا
     - الو
     - أهلاً
     - صباح الخير
+
+- intent: greet_en
+  examples: |
     - hi
     - hello
     - hey
+    - good morning
+    - good evening
+    - hey there
 
-- intent: ask_prices
+- intent: ask_prices_ar
   examples: |
     - كم أسعار الباقات؟
     - بكم عملية التجميل؟
+    - ابغى اعرف سعر الباقة الأساسية
+    - كم سعر الباقة المميزة عندكم؟
+    - ما هي تكلفة الباقة الذهبية؟
+    - هل في خصم على الباقة الذهبية؟
+
+- intent: ask_prices_en
+  examples: |
     - what are your prices?
     - how much does it cost?
+    - give me an estimate for the premium package
+    - how much do I pay for the gold program?
+    - what does the basic package cost?
+    - are there different prices for each package?
 
-- intent: ask_services
+- intent: ask_services_ar
   examples: |
     - ايش الخدمات اللي تقدمونها؟
+    - وش تشمله الباقة من خدمات؟
+    - هل في نقل وإقامة ضمن الباقة؟
+    - ايش الفحوصات اللي تسوونها في الباقات؟
+    - هل تتضمن الباقة متابعة بعد العلاج؟
+
+- intent: ask_services_en
+  examples: |
     - what services do you offer?
     - tell me about your packages
+    - do you include translation and insurance?
+    - what is included in the treatment package?
+    - does the package cover transportation?
+    - which medical tests are part of the package?
 
-- intent: goodbye
+- intent: ask_package_types_ar
+  examples: |
+    - ما هي أنواع الباقات المتوفرة؟
+    - ايش فئات الباقات عندكم؟
+    - هل عندكم باقة ذهبية؟
+    - وش الباقات اللي تقدمونها؟
+    - عرفني على باقات نقاهة
+
+- intent: ask_package_types_en
+  examples: |
+    - tell me about the package tiers
+    - what packages do you have?
+    - what kind of packages are available?
+    - list the treatment packages you offer
+    - do you have a gold package?
+
+- intent: ask_package_customization_ar
+  examples: |
+    - هل أقدر أخصص الباقة حسب حالتي؟
+    - اقدر اغير الخدمات على حسب الميزانية؟
+    - ممكن تضيفون جلسات أو فحوصات زيادة؟
+    - هل ممكن اختار مستوى السكن؟
+    - اقدر اطلب مرافق طبي خاص؟
+
+- intent: ask_package_customization_en
+  examples: |
+    - can you tailor the package for me?
+    - can I upgrade the hotel or add more tests?
+    - is it possible to customize the package?
+    - can you adjust the package to my budget?
+    - may I add extra support services?
+
+- intent: ask_package_comparison_ar
+  examples: |
+    - ايش الفرق بين الباقة الأساسية والمميزة؟
+    - قارن لي بين الباقات الثلاث
+    - ايش المزايا اللي تفرق الباقة الذهبية؟
+    - عطيني مقارنة بين الأسعار والمزايا
+    - اي باقة تناسب ميزانية متوسطة؟
+
+- intent: ask_package_comparison_en
+  examples: |
+    - which package offers more benefits?
+    - what is better, premium or gold?
+    - compare the three packages for me
+    - what is the difference between basic and premium?
+    - which package fits a mid-range budget?
+
+- intent: goodbye_ar
   examples: |
     - مع السلامة
-    - شكرا
+    - نشوفك على خير
+    - شكرا لكم
+    - في أمان الله
+
+- intent: goodbye_en
+  examples: |
     - bye
     - see you
+    - thanks goodbye
+    - talk to you later
