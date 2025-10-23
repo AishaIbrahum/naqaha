@@ -104,6 +104,25 @@ nlu:
     - what is the difference between basic and premium?
     - which package fits a mid-range budget?
 
+- intent: request_custom_package
+  examples: |
+    - I need a custom recovery plan
+    - can you design a package around my surgery?
+    - I want something tailored for my budget and city
+    - I need help choosing the right package for my condition
+    - ابي باقة مخصصة لحالتي
+    - ابغى ترتبون لي باقة خاصة
+    - احتاج حجز باقة على حسب ميزانيتي
+    - ممكن تصممون لي خطة علاج مناسبة؟
+    - احتاج باقة مخصصة
+    - ابي باقة تفصيل
+    - ابغى خطة علاج حسب ميزانيتي
+    - احتاج تنسقون لي باقة مناسبة للمدينة اللي ابغاها
+    - ابي حجز باقة خاصة بمدينة جدة
+    - tailor a medical package for me
+    - help me build a custom plan
+    - I need a tailored medical package
+
 - intent: goodbye_ar
   examples: |
     - مع السلامة
@@ -117,3 +136,10 @@ nlu:
     - see you
     - thanks goodbye
     - talk to you later
+
+- intent: bot_challenge
+  examples: |
+    - are you a bot?
+    - am I talking to a human?
+    - هل أنت روبوت؟
+    - هل أكلم شخص حقيقي؟

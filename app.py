@@ -37,7 +37,7 @@ from sqlalchemy.orm import joinedload
 
 app = Flask(__name__)
 app.secret_key = "secretkey123"
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////mnt/c/Users/-aish/Desktop/naqaha_last_version/instance/nqaha.db"
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////mnt/c/Users/hanee/OneDrive/Desktop/naqaha/instance/nqaha.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
