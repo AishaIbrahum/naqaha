@@ -78,6 +78,7 @@
               <li class="nav-item"><a class="nav-link" href="{{ url_for('consult_doctor') }}">استشر طبيب</a></li>
             {% elif company_logged_in %}
               <li class="nav-item"><a class="nav-link" href="{{ url_for('company_dashboard') }}">لوحة الشركة</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('company_dashboard') }}#doctor-management">الأطباء</a></li>
               <li class="nav-item"><a class="nav-link" href="{{ url_for('company_packages') }}">باقاتي</a></li>
               <li class="nav-item"><a class="nav-link" href="{{ url_for('company_bookings') }}">حجوزات العملاء</a></li>
             {% elif doctor_logged_in %}
@@ -99,7 +100,7 @@
   </div>
 </nav>
 
-<div class="container mt-4">
+<div class="container mt-4 {% if request.endpoint in ['admin_login', 'doctor_login'] %}full-height-wrapper{% endif %}">
     {% block content %}{% endblock %}
 </div>
 

@@ -69,6 +69,35 @@
                 <p>لا يوجد سجل بعد.</p>
               {% endif %}
             </div>
+
+            <div class="assignment">
+              <h3>الطبيب المسؤول</h3>
+              {% if booking.doctor %}
+                <p>
+                  د. {{ booking.doctor.name }}
+                  {% if booking.doctor.specialty %}
+                    — {{ booking.doctor.specialty }}
+                  {% endif %}
+                </p>
+              {% else %}
+                <p>لم يتم تعيين طبيب بعد.</p>
+              {% endif %}
+
+              {% if doctors and booking.status not in ['cancelled', 'rejected'] %}
+                <form action="{{ url_for('company_assign_doctor', booking_id=booking.id) }}" method="POST" class="assign-form">
+                  <label>اختر طبيباً:</label>
+                  <select name="doctor_id">
+                    <option value="">— اختر الطبيب —</option>
+                    {% for doctor in doctors %}
+                      <option value="{{ doctor.id }}" {{ 'selected' if booking.doctor and booking.doctor.id == doctor.id else '' }}>
+                        {{ doctor.name }} — {{ doctor.specialty or 'بدون تخصص' }} ({{ doctor.status }})
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit">تحديث الربط</button>
+                </form>
+              {% endif %}
+            </div>
           </div>
 
           <footer>
@@ -187,6 +216,37 @@
     border: 1px solid rgba(0,0,0,0.06);
     border-radius: 12px;
     padding: 10px 12px;
+  }
+
+  .assignment {
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding-top: 12px;
+  }
+
+  .assign-form {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .assign-form select {
+    flex: 1;
+    min-width: 220px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.12);
+    padding: 8px 12px;
+  }
+
+  .assign-form button {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 16px;
+    background: var(--secondary-color);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
   }
 
   footer textarea {

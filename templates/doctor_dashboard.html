@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم الطبيب</title>
+    <title>لوحة الطبيب</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Cairo', 'Segoe UI', sans-serif;
             background: #f1f5f9;
             margin: 0;
             color: #0f172a;
         }
 
         header {
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+            background: linear-gradient(135deg, #0ea5e9, #14b8a6);
             color: #fff;
-            padding: 24px 32px 40px;
+            padding: 28px 32px 40px;
             border-bottom-left-radius: 40px;
             border-bottom-right-radius: 40px;
         }
@@ -30,6 +30,15 @@
             opacity: 0.85;
         }
 
+        .logout {
+            margin-top: 16px;
+        }
+
+        .logout a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+        }
+
         .container {
             max-width: 1200px;
             margin: -60px auto 40px;
@@ -40,25 +49,25 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 18px;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
 
         .stat-card {
             background: #fff;
             border-radius: 18px;
             padding: 22px;
-            box-shadow: 0 15px 30px rgba(15, 23, 42, 0.12);
+            box-shadow: 0 10px 28px rgba(15,23,42,0.12);
         }
 
         .stat-card h2 {
             margin: 0;
             font-size: 2rem;
-            color: #2563eb;
+            color: #0ea5e9;
         }
 
         .stat-card span {
             display: block;
-            margin-top: 8px;
+            margin-top: 6px;
             color: #475569;
             font-weight: 600;
         }
@@ -72,13 +81,126 @@
             background: #fff;
             border-radius: 18px;
             padding: 24px;
-            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+            box-shadow: 0 12px 28px rgba(15,23,42,0.08);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
         .card h2 {
-            margin: 0 0 20px;
+            margin: 0 0 16px;
             font-size: 1.4rem;
             color: #1f2937;
+        }
+
+        .filter-tabs {
+            display: inline-flex;
+            background: #f1f5f9;
+            border-radius: 999px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .filter-tabs a {
+            text-decoration: none;
+            padding: 6px 16px;
+            border-radius: 999px;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .filter-tabs a.active {
+            background: linear-gradient(135deg, #0ea5e9, #14b8a6);
+            color: #fff;
+        }
+
+        .booking-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .booking-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 18px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .booking-card header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .booking-card h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .status-pending { background: rgba(255,193,7,0.18); color: #b45309; }
+        .status-approved { background: rgba(14,165,233,0.18); color: #0c4a6e; }
+        .status-completed { background: rgba(34,197,94,0.18); color: #166534; }
+        .status-cancelled { background: rgba(239,68,68,0.18); color: #991b1b; }
+        .status-rejected { background: rgba(148,163,184,0.25); color: #475569; }
+
+        .booking-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            color: #64748b;
+            font-size: 0.92rem;
+        }
+
+        .service-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .service-tags span {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-radius: 10px;
+            padding: 4px 10px;
+            font-size: 0.85rem;
+        }
+
+        .status-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .status-form select {
+            border-radius: 10px;
+            border: 1px solid #cbd5f5;
+            padding: 8px 12px;
+        }
+
+        .status-form button {
+            border: none;
+            border-radius: 10px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         .consultation {
@@ -86,12 +208,6 @@
             border-radius: 14px;
             padding: 16px 18px;
             margin-bottom: 14px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .consultation:hover {
-            border-color: #2563eb;
-            box-shadow: 0 12px 20px rgba(37, 99, 235, 0.08);
         }
 
         .consultation-header {
@@ -101,9 +217,9 @@
             flex-wrap: wrap;
         }
 
-        .status {
+        .consultation .status-chip {
             padding: 6px 12px;
-            background: rgba(37, 99, 235, 0.12);
+            background: rgba(37,99,235,0.12);
             color: #1d4ed8;
             border-radius: 999px;
             font-size: 0.85rem;
@@ -111,13 +227,13 @@
         }
 
         .meta {
-            margin-top: 10px;
+            margin-top: 8px;
             color: #64748b;
             font-size: 0.9rem;
         }
 
         .actions {
-            margin-top: 16px;
+            margin-top: 12px;
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
@@ -131,11 +247,10 @@
             font-size: 0.95rem;
             border: none;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: #fff;
         }
 
@@ -145,33 +260,13 @@
             border: 1px solid #2563eb;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 22px rgba(37, 99, 235, 0.18);
-        }
-
         .empty-state {
-            padding: 30px;
+            padding: 28px;
             text-align: center;
             color: #94a3b8;
             border: 1px dashed #cbd5f5;
             border-radius: 16px;
             background: #f8fafc;
-        }
-
-        .logout {
-            margin-top: 24px;
-            text-align: left;
-        }
-
-        .logout a {
-            color: #cbd5f5;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-
-        .flash-messages {
-            margin-bottom: 20px;
         }
 
         .alert {
@@ -184,7 +279,6 @@
         .alert-success { background: #dcfce7; color: #166534; }
         .alert-danger { background: #fee2e2; color: #b91c1c; }
         .alert-info { background: #dbeafe; color: #1d4ed8; }
-        .alert-warning { background: #fef3c7; color: #b45309; }
 
         @media (max-width: 768px) {
             header {
@@ -209,7 +303,7 @@
         'closed': 'مغلقة'
     } %}
     <header>
-        <h1>أهلاً د. {{ doctor.name }}</h1>
+        <h1>مرحباً د. {{ doctor.name }}</h1>
         <p>تخصصك: {{ doctor.specialty or 'غير محدد' }} | آخر تسجيل: {{ doctor.last_login.strftime('%Y-%m-%d %H:%M') if doctor.last_login else '—' }}</p>
         <div class="logout">
             <a href="{{ url_for('doctor_logout') }}">تسجيل الخروج</a>
@@ -229,34 +323,92 @@
 
         <section class="stats">
             <div class="stat-card">
+                <h2>{{ stats.bookings }}</h2>
+                <span>حجوزات ضمن النطاق</span>
+            </div>
+            <div class="stat-card">
                 <h2>{{ stats.active }}</h2>
                 <span>استشارات قيد المعالجة</span>
             </div>
             <div class="stat-card">
-                <h2>{{ stats.answered }}</h2>
-                <span>استشارات تم الرد عليها</span>
+                <h2>{{ stats.waiting }}</h2>
+                <span>استشارات بانتظارك</span>
             </div>
             <div class="stat-card">
-                <h2>{{ stats.waiting }}</h2>
-                <span>استشارات جديدة بانتظار التعيين</span>
+                <h2>{{ stats.answered }}</h2>
+                <span>استشارات تمت معالجتها</span>
             </div>
         </section>
 
         <section class="sections">
+            <div class="card">
+                <div class="card-header">
+                    <h2>مواعيدي</h2>
+                    <div class="filter-tabs">
+                        {% for key, label in booking_filters.items() %}
+                            <a href="{{ url_for('doctor_dashboard', range=key) }}" class="{{ 'active' if selected_range == key else '' }}">{{ label }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if bookings %}
+                    <div class="booking-list">
+                        {% for booking in bookings %}
+                            {% set appointment_date = booking.scheduled_for or (booking.appointment.date if booking.appointment else None) %}
+                            <article class="booking-card status-{{ booking.status }}">
+                                <header>
+                                    <div>
+                                        <h3>{{ booking.user.first_name if booking.user else 'مريض' }}</h3>
+                                        <div class="booking-meta">
+                                            <span>{{ booking.package.title if booking.package else 'خدمة مخصصة' }}</span>
+                                            {% if appointment_date %}
+                                                <span>{{ appointment_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="status-badge status-{{ booking.status }}">
+                                        {{ booking_status_labels.get(booking.status, booking.status) }}
+                                    </span>
+                                </header>
+
+                                {% if booking.selected_services %}
+                                    <div class="service-tags">
+                                        {% for service in booking.selected_services %}
+                                            <span>{{ service.service_name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                {% if booking.notes %}
+                                    <p>{{ booking.notes }}</p>
+                                {% endif %}
+
+                                <form class="status-form" method="POST" action="{{ url_for('doctor_update_booking_status', booking_id=booking.id, range=selected_range) }}">
+                                    <label>تغيير الحالة:</label>
+                                    <select name="status">
+                                        {% for value, label in booking_status_choices %}
+                                            <option value="{{ value }}" {{ 'selected' if booking.status == value else '' }}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit">تحديث</button>
+                                </form>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">لا توجد حجوزات في الفترة المحددة.</div>
+                {% endif %}
+            </div>
+
             <div class="card">
                 <h2>استشارات جديدة من تخصصك</h2>
                 {% if new_consultations %}
                     {% for consultation in new_consultations %}
                         <div class="consultation">
                             <div class="consultation-header">
-                                <div>
-                                    <strong>السؤال:</strong> {{ consultation.question[:80] }}{% if consultation.question|length > 80 %}...{% endif %}
-                                </div>
-                                <span class="status">{{ status_labels.get('new') }}</span>
+                                <div><strong>السؤال:</strong> {{ consultation.question[:80] }}{% if consultation.question|length > 80 %}...{% endif %}</div>
+                                <span class="status-chip">{{ status_labels.get('new') }}</span>
                             </div>
-                            <div class="meta">
-                                أرسل بتاريخ {{ consultation.created_at.strftime('%Y-%m-%d %H:%M') }}
-                            </div>
+                            <div class="meta">أرسل بتاريخ {{ consultation.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
                             <div class="actions">
                                 <form action="{{ url_for('doctor_claim_consultation', consultation_id=consultation.id) }}" method="POST">
                                     <button class="btn btn-primary" type="submit">استلام الاستشارة</button>
@@ -266,7 +418,7 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="empty-state">لا توجد استشارات جديدة حالياً.</div>
+                    <div class="empty-state">لا توجد استشارات جديدة.</div>
                 {% endif %}
             </div>
 
@@ -276,10 +428,8 @@
                     {% for consultation in active_consultations %}
                         <div class="consultation">
                             <div class="consultation-header">
-                                <div>
-                                    <strong>{{ consultation.specialization or 'غير محدد' }}</strong>
-                                </div>
-                                <span class="status">{{ status_labels.get(consultation.status, consultation.status) }}</span>
+                                <strong>{{ consultation.specialization or 'غير محدد' }}</strong>
+                                <span class="status-chip">{{ status_labels.get(consultation.status, consultation.status) }}</span>
                             </div>
                             <div class="meta">
                                 المريض: {{ consultation.user.first_name if consultation.user else '—' }} | رقم التواصل: {{ consultation.phone_number }}
@@ -295,15 +445,13 @@
             </div>
 
             <div class="card">
-                <h2>استشارات منجزة</h2>
+                <h2>أحدث الاستشارات المنجزة</h2>
                 {% if answered_consultations %}
                     {% for consultation in answered_consultations[:5] %}
                         <div class="consultation">
                             <div class="consultation-header">
-                                <div>
-                                    <strong>{{ consultation.specialization or 'غير محدد' }}</strong>
-                                </div>
-                                <span class="status">{{ status_labels.get('answered') }}</span>
+                                <strong>{{ consultation.specialization or 'غير محدد' }}</strong>
+                                <span class="status-chip">{{ status_labels.get('answered') }}</span>
                             </div>
                             <div class="meta">
                                 تم الرد بتاريخ {{ consultation.answered_at.strftime('%Y-%m-%d %H:%M') if consultation.answered_at else '—' }}
@@ -314,7 +462,7 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="empty-state">لم يتم الرد على أي استشارة بعد.</div>
+                    <div class="empty-state">لا يوجد سجل للردود بعد.</div>
                 {% endif %}
             </div>
         </section>

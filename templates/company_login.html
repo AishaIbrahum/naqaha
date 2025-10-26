@@ -1,19 +1,200 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل دخول الشركات</title>
-</head>
-<body>
-    <h2>تسجيل دخول الشركات</h2>
-    <form action="{{ url_for('company_login') }}" method="POST">
-        <label>البريد الإلكتروني للشركة:</label>
-        <input type="email" name="email" required><br>
-        <label>كلمة المرور:</label>
-        <input type="password" name="password" required><br>
-        <button type="submit">دخول</button>
+{% extends "base.html" %}
+{% block content %}
+<section class="split-auth">
+  <div class="auth-panel">
+    <div>
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="نقاهة" class="logo">
+      <h1>تسجيل دخول الشركات</h1>
+      <p>ادخل لوحة نقاهة لمتابعة الباقات والحجوزات، وإدارة فريقك الطبي.</p>
+    </div>
+
+    <form action="{{ url_for('company_login') }}" method="POST" class="auth-form">
+      <label>
+        البريد الإلكتروني للشركة
+        <input type="email" name="email" placeholder="company@naqaha.sa" required>
+      </label>
+      <label>
+        كلمة المرور
+        <input type="password" name="password" placeholder="••••••••" required>
+      </label>
+      <button type="submit">دخول</button>
     </form>
-    <a href="{{ url_for('company_register') }}">إنشاء حساب شركة جديد</a>
-</body>
-</html>
+
+    <div class="form-links">
+      <span>ليس لديك حساب؟ <a href="{{ url_for('company_register') }}">سجل شركتك</a></span>
+      <span>مساعدة؟ <a href="mailto:partners@naqaha.sa">partners@naqaha.sa</a></span>
+    </div>
+  </div>
+
+  <div class="hero-panel hero-company">
+    <div class="hero-content">
+      <span class="tag">مزايا شركاء نقاهة</span>
+      <h2>لوحة تشغيل ذكية للنمو السريع</h2>
+      <p>كل ما تحتاجه لتقديم خدمات طبية متكاملة لعملائك.</p>
+      <ul>
+        <li>متابعة الحجوزات والتنبيهات لحظياً</li>
+        <li>ربط الأطباء بالباقات والخدمات بسهولة</li>
+        <li>تقارير تفاعلية عن الإيرادات والأداء</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .split-auth {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    min-height: calc(100vh - 120px);
+    background: #fff;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .auth-panel {
+    padding: 50px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background: #fff;
+  }
+
+  .auth-panel .logo {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    margin-bottom: 14px;
+  }
+
+  .auth-panel h1 {
+    margin: 0 0 8px;
+    font-size: 1.9rem;
+    color: var(--text-primary);
+  }
+
+  .auth-panel p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .auth-form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .auth-form label {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: grid;
+    gap: 8px;
+  }
+
+  .auth-form input {
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.12);
+    padding: 12px 14px;
+    font-size: 1rem;
+  }
+
+  .auth-form button {
+    border: none;
+    border-radius: 16px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #fff;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 6px;
+  }
+
+  .auth-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .form-links {
+    display: grid;
+    gap: 8px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  .form-links a {
+    color: var(--secondary-color);
+    font-weight: 700;
+    text-decoration: none;
+    margin-right: 6px;
+  }
+
+  .hero-panel {
+    color: #fff;
+    position: relative;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+  }
+  .hero-panel.hero-company {
+    background: linear-gradient(135deg, rgba(0,168,168,0.92), rgba(0,128,128,0.95), rgba(25,118,210,0.4));
+  }
+
+  .hero-panel::after {
+    content: "";
+    position: absolute;
+    inset: 12%;
+    border-radius: 30px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), transparent 60%);
+    filter: blur(10px);
+    opacity: 0.6;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 420px;
+    backdrop-filter: blur(4px);
+  }
+
+  .hero-content .tag {
+    display: inline-flex;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.15);
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+  }
+
+  .hero-content h2 {
+    font-size: 2.2rem;
+    margin: 0 0 12px;
+  }
+
+  .hero-content p {
+    margin: 0 0 18px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .hero-content ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .hero-content li {
+    padding: 8px 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+
+  @media (max-width: 768px) {
+    .split-auth {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+  }
+</style>
+{% endblock %}

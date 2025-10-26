@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}أطباء الشركة{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='naqaha.css') }}"/>
+
+<div class="container vstack">
+  <div class="hstack" style="justify-content:space-between">
+    <h2>أطباء {{ company.name }}</h2>
+    <span class="kbd">Company Portal</span>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">إضافة طبيب جديد</h3>
+    <form class="grid cols-2" method="post" action="{{ url_for('company_add_doctor', company_id=company.id) }}">
+      <div class="vstack">
+        <label>الاسم</label>
+        <input name="name" required placeholder="الاسم الكامل">
+      </div>
+      <div class="vstack">
+        <label>التخصص</label>
+        <input name="specialty" required placeholder="مثال: قلب، عظام، تجميل">
+      </div>
+      <div class="vstack">
+        <label>البريد الإلكتروني</label>
+        <input type="email" name="email" required placeholder="doctor@example.com">
+      </div>
+      <div class="vstack">
+        <label>الجوال</label>
+        <input name="phone" placeholder="05xxxxxxxx">
+      </div>
+      <div class="hstack" style="grid-column:1/-1;justify-content:flex-end">
+        <button class="btn" type="submit">حفظ الطبيب</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card vstack">
+    <div class="hstack" style="justify-content:space-between">
+      <h3 style="margin:0">قائمة الأطباء</h3>
+      <small class="muted">الأطباء ضمن هذه الشركة فقط</small>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr><th>الاسم</th><th>التخصص</th><th>الحالة</th><th>مواعيد قادمة</th><th>إجراءات</th></tr>
+      </thead>
+      <tbody>
+      {% for d in doctors %}
+        <tr class="row">
+          <td>{{ d.name }}</td>
+          <td>{{ d.specialty }}</td>
+          <td>
+            {% if d.status == 'active' %}
+              <span class="badge green">نشط</span>
+            {% else %}
+              <span class="badge red">معلّق</span>
+            {% endif %}
+          </td>
+          <td>{{ upcoming_counts.get(d.id, 0) }}</td>
+          <td class="hstack">
+            <a class="btn-outline" href="{{ url_for('doctor_appointments', doctor_id=d.id) }}">مواعيد الطبيب</a>
+            <button class="btn" onclick="toggleDoctor({{ d.id }})">
+              {% if d.status == 'active' %}تعطيل{% else %}تفعيل{% endif %}
+            </button>
+          </td>
+        </tr>
+      {% else %}
+        <tr class="row"><td colspan="5">لا يوجد أطباء بعد.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+async function toggleDoctor(id){
+  const res = await fetch(`/portal/doctors/${id}/toggle`, {method:'POST'});
+  if(res.ok){ location.reload(); }
+}
+</script>
+{% endblock %}

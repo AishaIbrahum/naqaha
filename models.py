@@ -28,6 +28,7 @@ class User(db.Model):
     consultations = db.relationship("Consultation", backref="user", lazy=True)
     notifications = db.relationship("Notification", backref="user", lazy=True)
     medical_reports = db.relationship("MedicalReport", backref="user", lazy=True)
+    doctor_reviews = db.relationship("DoctorReview", backref="user", lazy=True)
 
 
 # -------------------- جدول الشركات --------------------
@@ -44,6 +45,12 @@ class Company(db.Model):
     appointments = db.relationship("Appointment", backref="company", lazy=True)
     bookings = db.relationship("Booking", backref="company", lazy=True)
     notifications = db.relationship("Notification", backref="company", lazy=True)
+    roles = db.relationship(
+        "CompanyRole",
+        backref="company",
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
 
 
 # -------------------- جدول الأدمن --------------------
@@ -64,6 +71,10 @@ class Doctor(db.Model):
     specialty = db.Column(db.String(100))
     profile_picture = db.Column(db.String(200))
     status = db.Column(db.String(50), default="pending")
+    phone = db.Column(db.String(30))
+    cv_summary = db.Column(db.Text)
+    license_document = db.Column(db.String(200))
+    certificate_document = db.Column(db.String(200))
     email = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(200))
     last_login = db.Column(db.DateTime)
@@ -75,6 +86,18 @@ class Doctor(db.Model):
     consultations = db.relationship("Consultation", backref="doctor", lazy=True)
     medical_reports = db.relationship("MedicalReport", backref="doctor", lazy=True)
     consultation_responses = db.relationship("ConsultationResponse", backref="doctor", lazy=True)
+    service_links = db.relationship(
+        "DoctorServiceLink",
+        backref="doctor",
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+    reviews = db.relationship(
+        "DoctorReview",
+        backref="doctor",
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
 
 
 # -------------------- جدول الباقات --------------------
@@ -91,6 +114,7 @@ class Package(db.Model):
 
     services = db.relationship("PackageService", backref="package", lazy=True)
     bookings = db.relationship("Booking", backref="package", lazy=True)
+    doctor_service_links = db.relationship("DoctorServiceLink", backref="package", lazy=True)
 
 
 # -------------------- جدول خدمات الباقات --------------------
@@ -106,6 +130,7 @@ class PackageService(db.Model):
         backref="package_service",
         lazy=True
     )
+    doctor_links = db.relationship("DoctorServiceLink", backref="package_service", lazy=True)
 
 
 class BookingServiceSelection(db.Model):
@@ -117,11 +142,38 @@ class BookingServiceSelection(db.Model):
     service_price = db.Column(db.Float)
 
 
+# -------------------- ربط الطبيب بالخدمات --------------------
+class DoctorServiceLink(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    package_id = db.Column(db.Integer, db.ForeignKey('package.id'), nullable=False)
+    package_service_id = db.Column(db.Integer, db.ForeignKey('package_service.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# -------------------- تقييمات الأطباء --------------------
+class DoctorReview(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=False)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=True)
+    rating = db.Column(db.Integer, nullable=False)
+    bedside_manner = db.Column(db.Integer)
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 # -------------------- جدول المواعيد --------------------
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     notes = db.Column(db.Text)
+    status = db.Column(db.String(50), nullable=False, default="pending_confirmation")
+    service_type = db.Column(db.String(120))
+    proposed_time = db.Column(db.DateTime, nullable=True)
+    proposed_note = db.Column(db.Text, nullable=True)
+    status_updated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey("doctor.id"), nullable=True)
@@ -129,6 +181,25 @@ class Appointment(db.Model):
 
     bookings = db.relationship("Booking", backref="appointment", lazy=True)
     medical_reports = db.relationship("MedicalReport", backref="appointment", lazy=True)
+    reviews = db.relationship(
+        "DoctorReview",
+        backref="appointment",
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+    status_history = db.relationship(
+        "AppointmentStatusHistory",
+        backref="appointment",
+        lazy=True,
+        cascade="all, delete-orphan",
+        order_by="AppointmentStatusHistory.created_at.asc()"
+    )
+
+    def latest_status(self):
+        return self.status_history[-1] if self.status_history else None
+
+    def timeline(self):
+        return self.status_history
 
 
 # -------------------- جدول رسائل الطبيب --------------------
@@ -164,6 +235,7 @@ class Booking(db.Model):
     package_id = db.Column(db.Integer, db.ForeignKey('package.id'), nullable=False)
     appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=True)
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=True)
     requested_at = db.Column(db.DateTime, default=datetime.utcnow)
     scheduled_for = db.Column(db.DateTime, nullable=True)
     notes = db.Column(db.Text, nullable=True)
@@ -174,6 +246,13 @@ class Booking(db.Model):
     medical_reports = db.relationship('MedicalReport', backref='booking', lazy=True)
     selected_services = db.relationship(
         'BookingServiceSelection',
+        backref='booking',
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+    doctor = db.relationship('Doctor', backref='bookings', lazy=True)
+    reviews = db.relationship(
+        'DoctorReview',
         backref='booking',
         lazy=True,
         cascade="all, delete-orphan"
@@ -266,6 +345,15 @@ class MedicalReport(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class AppointmentStatusHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id', ondelete='CASCADE'), nullable=False)
+    status = db.Column(db.String(50), nullable=False)
+    note = db.Column(db.Text)
+    actor = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+
 # -------------------- جدول المدفوعات --------------------
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -286,6 +374,16 @@ class Notification(db.Model):
     body = db.Column(db.String(500))
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# -------------------- أدوار وصلاحيات الشركة --------------------
+class CompanyRole(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    name = db.Column(db.String(80), nullable=False)
+    permissions = db.Column(db.JSON, nullable=False, default=dict)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 # -------------------- جدول إجراءات الأدمن --------------------

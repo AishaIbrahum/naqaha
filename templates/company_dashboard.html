@@ -1,34 +1,53 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="company-dashboard">
-  <header class="dashboard-header">
-    <div>
-      <h1>مرحبا {{ company.name if company else '' }}</h1>
-      <p>استعرض أداء باقاتك، وتتبع الحجوزات والمدفوعات بنظرة واحدة.</p>
+  <header class="dashboard-hero">
+    <div class="hero-content">
+      <p class="eyebrow">لوحة شركة نقاهة</p>
+      <h1>أهلاً {{ company.name if company else '' }}</h1>
+      <p>تابع نجاح باقاتك، اعتمد الحجوزات، وراقب أداء فريقك الطبي من مكان واحد.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="{{ url_for('add_package') }}">+ إضافة باقة</a>
+        <a class="btn outline" href="{{ url_for('company_bookings') }}">إدارة الحجوزات</a>
+      </div>
     </div>
-    <div class="actions">
-      <a class="btn primary" href="{{ url_for('add_package') }}">إضافة باقة جديدة</a>
-      <a class="btn outline" href="{{ url_for('company_bookings') }}">إدارة الحجوزات</a>
+    <div class="hero-highlight">
+      <div class="hero-stat">
+        <span>إجمالي الحجوزات</span>
+        <strong>{{ metrics.bookings.total }}</strong>
+      </div>
+      <div class="hero-stat">
+        <span>أطباء مرتبطون</span>
+        <strong>{{ doctors|length }}</strong>
+      </div>
+      <div class="hero-stat">
+        <span>صافي الإيرادات</span>
+        <strong>{{ '%.2f' | format(metrics.revenue or 0) }} ر.س</strong>
+      </div>
     </div>
   </header>
 
   <section class="metrics-grid">
     <article class="metric-card">
+      <div class="metric-icon"><i class="fas fa-boxes"></i></div>
       <span class="label">إجمالي الباقات</span>
       <h2>{{ metrics.packages.total }}</h2>
       <small>{{ metrics.packages.pending }} قيد المراجعة</small>
     </article>
     <article class="metric-card">
+      <div class="metric-icon"><i class="fas fa-check-circle"></i></div>
       <span class="label">الباقات المعتمدة</span>
       <h2>{{ metrics.packages.approved }}</h2>
       <small>{{ metrics.packages.rejected }} مرفوضة</small>
     </article>
     <article class="metric-card">
+      <div class="metric-icon"><i class="fas fa-calendar-check"></i></div>
       <span class="label">الحجوزات النشطة</span>
       <h2>{{ metrics.bookings.pending }}</h2>
       <small>{{ metrics.bookings.awaiting_payment }} بانتظار الدفع</small>
     </article>
     <article class="metric-card">
+      <div class="metric-icon"><i class="fas fa-coins"></i></div>
       <span class="label">إجمالي الإيرادات</span>
       <h2>{{ '%.2f' | format(metrics.revenue or 0) }} ر.س</h2>
       <small>{{ metrics.bookings.completed }} حجوزات مكتملة</small>
@@ -42,7 +61,7 @@
         <a href="{{ url_for('company_bookings') }}">عرض الكل</a>
       </div>
       {% if recent_bookings %}
-        <table>
+        <table class="table-modern">
           <thead>
             <tr>
               <th>الحجز</th>
@@ -56,7 +75,7 @@
               <tr>
                 <td>{{ booking.package.title if booking.package else '—' }}</td>
                 <td>{{ booking.user.first_name if booking.user else '—' }}</td>
-                <td><span class="status status-{{ booking.status }}">{{ status_labels.get(booking.status, booking.status) }}</span></td>
+                <td><span class="status-badge status-{{ booking.status }}">{{ status_labels.get(booking.status, booking.status) }}</span></td>
                 <td>{{ booking.scheduled_for.strftime('%Y-%m-%d %H:%M') if booking.scheduled_for else '—' }}</td>
               </tr>
             {% endfor %}
@@ -102,54 +121,344 @@
       </div>
     </aside>
   </section>
+
+  <section id="doctor-management" class="doctor-management">
+    <div class="section-heading">
+      <div>
+        <h2>إدارة الأطباء</h2>
+        <p>أدر حسابات الأطباء، حدّث حالاتهم واربطهم بخدماتك.</p>
+      </div>
+      <a class="btn primary" href="#add-doctor-card">+ إضافة طبيب</a>
+    </div>
+
+    <div class="doctor-layout">
+      <div class="doctor-cards">
+        {% if doctors %}
+          {% for doctor in doctors %}
+            <article class="doctor-card status-{{ doctor.status }}">
+              <header>
+                <div class="doctor-avatar">
+                  <img src="{{ url_for('static', filename=doctor.profile_picture) }}" alt="{{ doctor.name }}">
+                </div>
+                <div>
+                  <h3>{{ doctor.name }}</h3>
+                  <p>{{ doctor.specialty or '—' }}</p>
+                  <small>{{ doctor.email }}</small>
+                </div>
+                <form class="status-form" method="POST" action="{{ url_for('company_update_doctor_status', doctor_id=doctor.id) }}">
+                  <label>الحالة</label>
+                  <select name="status" onchange="this.form.submit()">
+                    <option value="available" {{ 'selected' if doctor.status == 'available' else '' }}>متاح</option>
+                    <option value="busy" {{ 'selected' if doctor.status == 'busy' else '' }}>مشغول</option>
+                    <option value="vacation" {{ 'selected' if doctor.status == 'vacation' else '' }}>إجازة</option>
+                    <option value="pending" {{ 'selected' if doctor.status == 'pending' else '' }}>بانتظار التفعيل</option>
+                  </select>
+                </form>
+              </header>
+
+              <ul class="doctor-stats">
+                <li>
+                  <span>الحجوزات</span>
+                  <strong>{{ doctor.total_bookings }}</strong>
+                </li>
+                <li>
+                  <span>المكتملة</span>
+                  <strong>{{ doctor.completed_bookings }}</strong>
+                </li>
+                <li>
+                  <span>الإيرادات</span>
+                  <strong>{{ '%.2f' | format(doctor.revenue) }} ر.س</strong>
+                </li>
+                <li>
+                  <span>التقييم</span>
+                  <strong>{{ doctor.avg_rating or '—' }}/5</strong>
+                  <small>{{ doctor.rating_count }} تقييم</small>
+                </li>
+              </ul>
+
+              <p class="cv-summary">{{ doctor.cv_summary or 'لم تتم إضافة نبذة مهنية بعد.' }}</p>
+
+              <div class="chip-group">
+                {% if doctor.packages %}
+                  {% for package in doctor.packages[:6] %}
+                    <span class="chip">{{ package }}</span>
+                  {% endfor %}
+                {% else %}
+                  <span class="chip chip-empty">لم يتم الربط بالخدمات</span>
+                {% endif %}
+              </div>
+
+              <details class="services-details">
+                <summary>تعديل ربط الخدمات</summary>
+                <form method="POST" action="{{ url_for('company_update_doctor_services', doctor_id=doctor.id) }}" class="services-form">
+                  <div class="package-selector">
+                    {% for package in packages_with_services %}
+                      <div class="package-block">
+                        <label class="package-checkbox">
+                          <input type="checkbox" name="service_links" value="package-{{ package.id }}" {{ 'checked' if package.id in doctor.package_ids else '' }}>
+                          <span>{{ package.title }}</span>
+                        </label>
+                        {% if package.services %}
+                          <div class="service-checkboxes">
+                            {% for service in package.services %}
+                              <label>
+                                <input type="checkbox" name="service_links" value="service-{{ service.id }}" {{ 'checked' if service.id in doctor.service_ids else '' }}>
+                                {{ service.service_name }}
+                              </label>
+                            {% endfor %}
+                          </div>
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+                  </div>
+                  <button type="submit">حفظ الربط</button>
+                </form>
+              </details>
+            </article>
+          {% endfor %}
+        {% else %}
+          <p class="empty-text">لا يوجد أطباء مسجلون بعد.</p>
+        {% endif %}
+      </div>
+
+      <aside class="doctor-sidebar">
+        <form id="add-doctor-card" class="add-doctor-card" method="POST" action="{{ url_for('company_add_doctor') }}" enctype="multipart/form-data">
+          <h3>إضافة طبيب جديد</h3>
+          <div class="form-grid">
+            <label>الاسم الكامل
+              <input type="text" name="name" required>
+            </label>
+            <label>التخصص
+              <input type="text" name="specialty" required>
+            </label>
+            <label>البريد الإلكتروني
+              <input type="email" name="email" required>
+            </label>
+            <label>رقم التواصل
+              <input type="text" name="phone">
+            </label>
+            <label>الحالة
+              <select name="status">
+                <option value="available">متاح</option>
+                <option value="busy">مشغول</option>
+                <option value="vacation">إجازة</option>
+                <option value="pending">بانتظار التفعيل</option>
+              </select>
+            </label>
+            <label>كلمة مرور مؤقتة (اختياري)
+              <input type="text" name="password" placeholder="إذا ترك فارغًا سيتم توليد كلمة مرور تلقائياً">
+            </label>
+          </div>
+          <label>نبذة مختصرة
+            <textarea name="cv_summary" rows="3" placeholder="خبرة الطبيب، مجالات التركيز، اللغات..."></textarea>
+          </label>
+          <div class="upload-grid">
+            <label>صورة الطبيب
+              <input type="file" name="profile_picture" accept="image/*">
+            </label>
+            <label>رخصة مزاولة
+              <input type="file" name="license_document" accept="image/*,.pdf">
+            </label>
+            <label>شهادة التخصص
+              <input type="file" name="certificate_document" accept="image/*,.pdf">
+            </label>
+          </div>
+          <div class="package-selector compact">
+            <p class="selector-title">ربط بالخدمات</p>
+            {% for package in packages_with_services %}
+              <div class="package-block">
+                <label class="package-checkbox">
+                  <input type="checkbox" name="service_links" value="package-{{ package.id }}">
+                  <span>{{ package.title }}</span>
+                </label>
+                {% if package.services %}
+                  <div class="service-checkboxes">
+                    {% for service in package.services %}
+                      <label>
+                        <input type="checkbox" name="service_links" value="service-{{ service.id }}">
+                        {{ service.service_name }}
+                      </label>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <button type="submit" class="btn primary full">حفظ الطبيب</button>
+        </form>
+
+        <div class="alerts-card">
+          <h3>تنبيهات الجودة</h3>
+          {% if doctor_alerts %}
+            <ul>
+              {% for alert in doctor_alerts %}
+                <li>
+                  <strong>{{ alert.name }}</strong>
+                  <p>متوسط التقييم {{ alert.avg_rating }} من 5 - راجع ملاحظات المرضى.</p>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="empty-text">لا توجد تنبيهات على التقييمات حالياً.</p>
+          {% endif %}
+        </div>
+
+        <div class="calendar-card">
+          <div class="calendar-header">
+            <div>
+              <h3>تقويم الحصص</h3>
+              <p>توزيع المواعيد خلال الأيام القادمة.</p>
+            </div>
+            <select id="calendarDoctorSelect">
+              {% for doctor in doctors %}
+                <option value="{{ doctor.id }}">{{ doctor.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div id="doctorCalendar" class="calendar-grid"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="doctor-analytics" class="doctor-analytics">
+    <div class="section-heading">
+      <div>
+        <h2>تحليلات الأداء</h2>
+        <p>أكثر المؤشرات فاعلية لمتابعة فريقك الطبي.</p>
+      </div>
+    </div>
+    <div class="analytics-grid">
+      <article class="analytics-card">
+        <h3>عدد الحجوزات لكل طبيب</h3>
+        <ul>
+          {% for row in performance_analytics.bookings_per_doctor %}
+            <li>
+              <span>{{ row.name }}</span>
+              <div class="progress">
+                <div style="width: {{ (row.completed / row.total * 100) if row.total else 0 }}%"></div>
+              </div>
+              <small>{{ row.completed }} / {{ row.total }} مكتملة</small>
+            </li>
+          {% endfor %}
+        </ul>
+      </article>
+      <article class="analytics-card">
+        <h3>الإيرادات الأعلى</h3>
+        <ul>
+          {% for row in performance_analytics.revenue_per_doctor %}
+            <li>
+              <span>{{ row.name }}</span>
+              <strong>{{ '%.2f' | format(row.revenue) }} ر.س</strong>
+            </li>
+          {% endfor %}
+        </ul>
+      </article>
+      <article class="analytics-card">
+        <h3>نسب الإلغاء حسب الخدمة</h3>
+        <ul>
+          {% for row in performance_analytics.cancellation_rates %}
+            <li>
+              <span>{{ row.service_name }}</span>
+              <strong>{{ row.rate }}%</strong>
+              <small>{{ row.total }} حجز</small>
+            </li>
+          {% endfor %}
+        </ul>
+      </article>
+      <article class="analytics-card">
+        <h3>الخدمات الأكثر طلباً بحسب التخصص</h3>
+        <ul>
+          {% for row in performance_analytics.top_services_by_specialty %}
+            <li>
+              <span>{{ row.specialty }}</span>
+              <strong>{{ row.service }}</strong>
+              <small>{{ row.count }} مرة</small>
+            </li>
+          {% endfor %}
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section id="role-settings" class="role-settings">
+    <div class="section-heading">
+      <div>
+        <h2>صلاحيات الفريق</h2>
+        <p>حدّد ما يمكن لكل فئة الوصول إليه داخل لوحة الشركة.</p>
+      </div>
+    </div>
+    <div class="roles-grid">
+      {% for role in company_roles %}
+        <form class="role-card" method="POST" action="{{ url_for('company_update_role_permissions', role_id=role.id) }}">
+          <h3>{{ role.name }}</h3>
+          <div class="permission-grid">
+            {% for key, label in permission_labels.items() %}
+              <label>
+                <input type="checkbox" name="permissions" value="{{ key }}" {% if role.permissions and role.permissions.get(key) %}checked{% endif %}>
+                <span>{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          <button type="submit">تحديث الصلاحيات</button>
+        </form>
+      {% endfor %}
+    </div>
+  </section>
 </section>
 
 <style>
   .company-dashboard {
-    max-width: 1200px;
+    max-width: 1320px;
     margin: 0 auto;
-    padding: 40px 20px 60px;
+    padding: 32px 20px 60px;
   }
 
-  .dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
+  .dashboard-hero {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    padding: 32px;
+    border-radius: var(--border-radius);
+    background: linear-gradient(135deg, rgba(0,168,168,0.12), rgba(0,128,128,0.25));
+    border: 1px solid rgba(0,128,128,0.1);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 28px;
   }
 
-  .dashboard-header h1 {
-    margin: 0;
-    font-size: 2rem;
-    color: var(--text-primary);
+  .hero-content .eyebrow {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    font-weight: 700;
   }
 
-  .dashboard-header p {
-    margin: 8px 0 0;
-    color: var(--text-secondary);
-  }
-
-  .actions {
+  .hero-actions {
     display: flex;
     gap: 12px;
-    align-items: center;
+    margin-top: 16px;
   }
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 18px;
-    border-radius: 12px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: var(--transition);
+  .hero-highlight {
+    display: grid;
+    gap: 12px;
   }
 
-  .btn.primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; }
-  .btn.outline { border: 1px solid var(--secondary-color); color: var(--secondary-color); }
-  .btn:hover { opacity: 0.92; }
+  .hero-stat {
+    background: rgba(255,255,255,0.6);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .hero-stat span {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .hero-stat strong {
+    font-size: 1.6rem;
+  }
 
   .metrics-grid {
     display: grid;
@@ -161,14 +470,24 @@
   .metric-card {
     background: #fff;
     border-radius: var(--border-radius);
-    border: 1px solid rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
     box-shadow: var(--shadow-md);
     padding: 20px;
+    display: grid;
+    gap: 6px;
   }
 
-  .metric-card .label { color: var(--text-secondary); display: block; }
-  .metric-card h2 { margin: 12px 0 6px; font-size: 1.8rem; color: var(--text-primary); }
-  .metric-card small { color: var(--text-secondary); }
+  .metric-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(0,168,168,0.12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+  }
 
   .dashboard-body {
     display: grid;
@@ -194,33 +513,34 @@
   .panel-header h2 { margin: 0; }
   .panel-header a { font-size: 0.9rem; color: var(--secondary-color); text-decoration: none; }
 
-  table {
+  .table-modern {
     width: 100%;
     border-collapse: collapse;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.08);
   }
 
-  th, td {
+  .table-modern th,
+  .table-modern td {
     padding: 12px 14px;
     text-align: center;
     border-bottom: 1px solid rgba(0,0,0,0.06);
   }
 
-  th {
+  .table-modern th {
     background: rgba(0,168,168,0.12);
     color: var(--secondary-color);
   }
 
-  .status {
+  .status-badge {
     display: inline-flex;
-    padding: 4px 10px;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
     border-radius: 999px;
     font-weight: 600;
   }
-
-  .status-approved { background: rgba(0,168,168,0.18); color: var(--secondary-color); }
-  .status-pending { background: rgba(255,193,7,0.18); color: #b45309; }
-  .status-completed { background: rgba(40,167,69,0.18); color: var(--success-color); }
-  .status-rejected, .status-cancelled { background: rgba(239,68,68,0.18); color: #b91c1c; }
 
   .sidebar {
     display: grid;
@@ -257,6 +577,344 @@
     gap: 4px;
   }
 
+  .doctor-management {
+    margin-top: 40px;
+    background: #fff;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-lg);
+    padding: 28px;
+  }
+
+  .section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .doctor-layout {
+    display: grid;
+    grid-template-columns: 2fr 0.9fr;
+    gap: 20px;
+  }
+
+  .doctor-cards {
+    display: grid;
+    gap: 18px;
+  }
+
+  .doctor-card {
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 20px;
+    padding: 20px;
+    background: var(--light-bg);
+    box-shadow: var(--shadow-md);
+    display: grid;
+    gap: 16px;
+  }
+
+  .doctor-card header {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .doctor-avatar img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(0,0,0,0.05);
+  }
+
+  .status-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+  }
+
+  .status-form select {
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 6px 10px;
+  }
+
+  .doctor-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(100px, 1fr));
+    gap: 12px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .doctor-stats li {
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .doctor-stats span {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+  }
+
+  .cv-summary {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(0,168,168,0.1);
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+  }
+
+  .chip-empty {
+    background: rgba(239,68,68,0.1);
+    color: #b91c1c;
+  }
+
+  .services-details {
+    border-top: 1px dashed rgba(0,0,0,0.1);
+    padding-top: 14px;
+  }
+
+  .services-form button,
+  .role-card button,
+  .add-doctor-card button {
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .package-selector {
+    display: grid;
+    gap: 12px;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 10px 0;
+    padding-left: 6px;
+  }
+
+  .package-block {
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 10px;
+    background: #fff;
+  }
+
+  .package-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .service-checkboxes {
+    display: grid;
+    gap: 6px;
+    padding-right: 6px;
+  }
+
+  .doctor-sidebar {
+    display: grid;
+    gap: 20px;
+    align-content: flex-start;
+  }
+
+  .add-doctor-card,
+  .alerts-card,
+  .calendar-card {
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 16px;
+    background: #fff;
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .add-doctor-card h3,
+  .alerts-card h3,
+  .calendar-card h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+  }
+
+  .form-grid input,
+  .form-grid select,
+  textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.12);
+    padding: 8px 10px;
+  }
+
+  .upload-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .alerts-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .alerts-card li {
+    background: rgba(255,193,7,0.12);
+    border-radius: 12px;
+    padding: 10px;
+  }
+
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .calendar-header select {
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 6px 8px;
+  }
+
+  .calendar-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .calendar-slot {
+    background: var(--light-bg);
+    border-radius: 12px;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .doctor-analytics,
+  .role-settings {
+    margin-top: 30px;
+    background: #fff;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 24px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .analytics-card {
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 16px;
+    padding: 16px;
+    background: var(--light-bg);
+  }
+
+  .analytics-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .analytics-card .progress {
+    width: 100%;
+    height: 6px;
+    background: rgba(0,0,0,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .analytics-card .progress div {
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  }
+
+  .roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .role-card {
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 16px;
+    padding: 16px;
+    background: var(--light-bg);
+    display: grid;
+    gap: 12px;
+  }
+
+  .permission-grid {
+    display: grid;
+    gap: 8px;
+  }
+
+  .doctor-card.status-busy {
+    border-color: rgba(255,193,7,0.5);
+  }
+
+  .doctor-card.status-vacation {
+    border-color: rgba(59,130,246,0.4);
+  }
+
+  .doctor-card.status-pending {
+    border-color: rgba(239,68,68,0.4);
+  }
+
+  .add-doctor-card .full {
+    width: 100%;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  @media (max-width: 992px) {
+    .doctor-layout {
+      grid-template-columns: 1fr;
+    }
+    .doctor-stats {
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+    }
+  }
+
   .notifications span { color: var(--text-secondary); font-size: 0.85rem; }
 
   .empty-text {
@@ -270,4 +928,38 @@
     .dashboard-header { flex-direction: column; align-items: flex-start; }
   }
 </style>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const scheduleData = {{ doctor_schedule_data|tojson }};
+    const doctorSelect = document.getElementById('calendarDoctorSelect');
+    const calendarGrid = document.getElementById('doctorCalendar');
+    if (!doctorSelect || !calendarGrid) {
+      return;
+    }
+
+    const renderCalendar = () => {
+      const doctorId = doctorSelect.value;
+      const slots = scheduleData[String(doctorId)] || [];
+      calendarGrid.innerHTML = '';
+
+      if (!slots.length) {
+        calendarGrid.innerHTML = '<p class="empty-text">لا توجد مواعيد مجدولة.</p>';
+        return;
+      }
+
+      slots
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .forEach((slot) => {
+          const slotEl = document.createElement('div');
+          slotEl.className = 'calendar-slot';
+          slotEl.innerHTML = `<strong>${slot.date}</strong><p>${slot.count} حجز</p>`;
+          calendarGrid.appendChild(slotEl);
+        });
+    };
+
+    renderCalendar();
+    doctorSelect.addEventListener('change', renderCalendar);
+  });
+</script>
 {% endblock %}

@@ -10,12 +10,16 @@ from models import (
     BookingServiceSelection,
     BookingStatusHistory,
     Appointment,
+    AppointmentStatusHistory,
     Consultation,
     Invoice,
     Payment,
     MedicalReport,
     Notification,
     AdminAction,
+    DoctorServiceLink,
+    DoctorReview,
+    CompanyRole,
 )
 from werkzeug.security import generate_password_hash
 from datetime import datetime
@@ -53,6 +57,42 @@ with app.app_context():
         db.session.add(company)
         db.session.commit()
 
+    default_roles = {
+        "مدير الشركة": {
+            "bookings": True,
+            "doctors": True,
+            "finance": True,
+            "support": True,
+            "analytics": True
+        },
+        "الطبيب": {
+            "bookings": True,
+            "doctors": True,
+            "finance": False,
+            "support": False,
+            "analytics": False
+        },
+        "المحاسب": {
+            "bookings": False,
+            "doctors": False,
+            "finance": True,
+            "support": False,
+            "analytics": True
+        },
+        "خدمة العملاء": {
+            "bookings": True,
+            "doctors": False,
+            "finance": False,
+            "support": True,
+            "analytics": False
+        }
+    }
+    for role_name, perms in default_roles.items():
+        existing_role = CompanyRole.query.filter_by(company_id=company.id, name=role_name).first()
+        if not existing_role:
+            db.session.add(CompanyRole(company_id=company.id, name=role_name, permissions=perms))
+    db.session.commit()
+
     # -------------------- أدمن --------------------
     admin = Admin.query.filter_by(username="admin").first()
     if not admin:
@@ -70,6 +110,10 @@ with app.app_context():
             name="د. أحمد العتيبي",
             specialty="طب عام",
             email="doctor@test.com",
+            phone="+966500000001",
+            cv_summary="خبرة 8 سنوات في الطب العام وإدارة الحالات المزمنة والحرجة.",
+            license_document="documents/license_sample.pdf",
+            certificate_document="documents/board_cert.pdf",
             password=generate_password_hash("doctor123"),
             status="available",
             company_id=company.id if company else None
@@ -113,18 +157,53 @@ with app.app_context():
             )
             db.session.add(service)
         db.session.commit()
+    if doctor and package:
+        for service in package.services:
+            link = DoctorServiceLink.query.filter_by(
+                doctor_id=doctor.id,
+                package_id=package.id,
+                package_service_id=service.id
+            ).first()
+            if not link:
+                db.session.add(DoctorServiceLink(
+                    doctor_id=doctor.id,
+                    package_id=package.id,
+                    package_service_id=service.id
+                ))
+        package_link = DoctorServiceLink.query.filter_by(
+            doctor_id=doctor.id,
+            package_id=package.id,
+            package_service_id=None
+        ).first()
+        if not package_link:
+            db.session.add(DoctorServiceLink(
+                doctor_id=doctor.id,
+                package_id=package.id,
+                package_service_id=None
+            ))
+        db.session.commit()
 
     # -------------------- موعد وحجز --------------------
     booking = Booking.query.filter_by(user_id=user.id, package_id=package.id).first()
     if not booking:
         appointment = Appointment(
             user_id=user.id,
+            doctor_id=doctor.id if doctor else None,
             company_id=company.id,
             date=datetime.utcnow(),
             notes="موعد تجريبي",
+            status="pending_confirmation",
+            service_type="جلسة استشارة طبية"
         )
         db.session.add(appointment)
         db.session.flush()
+
+        db.session.add(AppointmentStatusHistory(
+            appointment_id=appointment.id,
+            status='pending_confirmation',
+            note='تم إنشاء الموعد التجريبي من سكربت الزرع',
+            actor='system'
+        ))
 
         booking = Booking(
             user_id=user.id,
@@ -180,6 +259,20 @@ with app.app_context():
         ))
 
         db.session.commit()
+
+    if doctor and booking:
+        existing_review = DoctorReview.query.filter_by(booking_id=booking.id).first()
+        if not existing_review:
+            db.session.add(DoctorReview(
+                doctor_id=doctor.id,
+                user_id=user.id,
+                booking_id=booking.id,
+                appointment_id=booking.appointment_id,
+                rating=5,
+                bedside_manner=5,
+                notes="طبيب رائع وتعامل راقٍ مع المريض."
+            ))
+            db.session.commit()
 
     # -------------------- استشارة --------------------
     consultation = Consultation.query.filter_by(user_id=user.id, doctor_id=None).first()

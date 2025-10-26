@@ -1,110 +1,184 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="auth-section">
-  <div class="auth-card">
-    <h1>تسجيل دخول الأدمن</h1>
-    <p>استخدم بيانات الحساب للإشراف على طلبات الباقات والحجوزات.</p>
+<section class="split-auth">
+  <div class="auth-panel">
+    <div>
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="نقاهة" class="logo">
+      <h1>تسجيل دخول الأدمن</h1>
+      <p>ادخل لوحة التحكم للإشراف على طلبات الشركات والحجوزات.</p>
+    </div>
 
     <form action="{{ url_for('admin_login', next=next) }}" method="POST" class="auth-form">
-      <div class="form-group">
-        <label for="username">اسم المستخدم</label>
-        <input id="username" type="text" name="username" required>
-      </div>
-
-      <div class="form-group">
-        <label for="password">كلمة المرور</label>
-        <input id="password" type="password" name="password" required>
-      </div>
-
+      <label>
+        اسم المستخدم
+        <input type="text" name="username" placeholder="admin" required>
+      </label>
+      <label>
+        كلمة المرور
+        <input type="password" name="password" placeholder="••••••••" required>
+      </label>
       {% if next %}
         <input type="hidden" name="next" value="{{ next }}">
       {% endif %}
-
-      <button type="submit" class="btn-primary">دخول</button>
+      <button type="submit">دخول</button>
     </form>
 
-    <div class="links">
-      <span>ليس لديك حساب؟</span>
-      <a href="{{ url_for('admin_register') }}">سجل الآن</a>
+    <div class="form-links">
+      <span>تحتاج حساب؟</span>
+      <a href="{{ url_for('admin_register') }}">سجّل الآن</a>
+    </div>
+  </div>
+
+  <div class="hero-panel hero-admin">
+    <div class="hero-content">
+      <span class="tag">صلاحيات عليا</span>
+      <h2>تحكم شامل بمنصة نقاهة</h2>
+      <p>اعتمد الباقات، راقب الأداء، وتابع تنبيهات الحجوزات لحظياً.</p>
     </div>
   </div>
 </section>
 
 <style>
-  .auth-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 70vh;
-    padding: 40px 20px;
-    background: linear-gradient(135deg, rgba(0,168,168,0.08), rgba(0,128,128,0.12));
-  }
-
-  .auth-card {
+  .split-auth {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    min-height: calc(100vh - 120px);
     background: #fff;
     border-radius: var(--border-radius);
+    overflow: hidden;
     box-shadow: var(--shadow-lg);
-    padding: 32px 28px;
-    max-width: 420px;
-    width: 100%;
-    display: grid;
-    gap: 18px;
   }
 
-  .auth-card h1 {
-    margin: 0;
+  .auth-panel {
+    padding: 50px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background: #fff;
+  }
+
+  .auth-panel .logo {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    margin-bottom: 14px;
+  }
+
+  .auth-panel h1 {
+    margin: 0 0 8px;
+    font-size: 1.9rem;
     color: var(--text-primary);
-    font-size: 1.8rem;
   }
 
-  .auth-card p {
+  .auth-panel p {
     margin: 0;
     color: var(--text-secondary);
+    line-height: 1.6;
   }
 
   .auth-form {
     display: grid;
-    gap: 16px;
+    gap: 18px;
   }
 
-  .form-group label {
-    display: block;
-    margin-bottom: 6px;
+  .auth-form label {
     font-weight: 600;
     color: var(--text-primary);
+    display: grid;
+    gap: 8px;
   }
 
-  .form-group input {
-    width: 100%;
-    border-radius: 12px;
-    border: 1px solid #cbd5f5;
-    padding: 12px;
+  .auth-form input {
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.12);
+    padding: 12px 14px;
     font-size: 1rem;
   }
 
-  .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: #fff;
+  .auth-form button {
     border: none;
-    border-radius: 12px;
-    padding: 12px 16px;
+    border-radius: 16px;
+    padding: 14px;
     font-size: 1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #fff;
     cursor: pointer;
     transition: var(--transition);
+    margin-top: 6px;
   }
 
-  .btn-primary:hover { opacity: 0.92; }
+  .auth-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
 
-  .links {
-    text-align: center;
-    color: var(--text-secondary);
+  .form-links {
     font-size: 0.95rem;
+    color: var(--text-secondary);
   }
 
-  .links a {
+  .form-links a {
     color: var(--secondary-color);
+    font-weight: 700;
     text-decoration: none;
-    font-weight: 600;
+    margin-right: 6px;
+  }
+
+  .hero-panel {
+    color: #fff;
+    position: relative;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .hero-panel.hero-admin {
+    background: linear-gradient(135deg, rgba(0,128,128,0.95), rgba(0,168,168,0.92), rgba(255,193,7,0.35));
+  }
+
+  .hero-panel::after {
+    content: "";
+    position: absolute;
+    inset: 12%;
+    border-radius: 30px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), transparent 60%);
+    filter: blur(10px);
+    opacity: 0.6;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 420px;
+    backdrop-filter: blur(4px);
+  }
+
+  .hero-content .tag {
+    display: inline-flex;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.2);
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+  }
+
+  .hero-content h2 {
+    font-size: 2.2rem;
+    margin: 0 0 12px;
+  }
+
+  .hero-content p {
+    margin: 0 0 18px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.9);
+  }
+
+  @media (max-width: 768px) {
+    .split-auth {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
   }
 </style>
 {% endblock %}

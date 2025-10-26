@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify
+from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify, abort
 from models import (
     db,
     User,
@@ -10,6 +10,7 @@ from models import (
     BookingServiceSelection,
     BookingStatusHistory,
     Appointment,
+    AppointmentStatusHistory,
     DoctorMessage,
     PaymentPlan,
     HealthCard,
@@ -21,16 +22,21 @@ from models import (
     Payment,
     Notification,
     AdminAction,
+    DoctorServiceLink,
+    DoctorReview,
+    CompanyRole,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
 
 from flask_migrate import Migrate
-from datetime import datetime
+from datetime import datetime, timedelta, date
 from functools import wraps
+from collections import defaultdict
 import os
 import re
+import secrets
 
 from sqlalchemy import case, func
 from sqlalchemy.orm import joinedload
@@ -55,9 +61,114 @@ IMAGE_UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static", "images"
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 app.config["UPLOAD_FOLDER"] = IMAGE_UPLOAD_FOLDER
+DOCUMENT_EXTENSIONS = {"pdf", "png", "jpg", "jpeg"}
+STATIC_ROOT = os.path.join(os.path.dirname(__file__), "static")
+DOCTOR_PHOTO_FOLDER = os.path.join("uploads", "doctors", "photos")
+DOCTOR_DOCS_FOLDER = os.path.join("uploads", "doctors", "documents")
+
+os.makedirs(os.path.join(STATIC_ROOT, DOCTOR_PHOTO_FOLDER), exist_ok=True)
+os.makedirs(os.path.join(STATIC_ROOT, DOCTOR_DOCS_FOLDER), exist_ok=True)
+
+DEFAULT_ROLE_PERMISSIONS = {
+    "مدير الشركة": {"bookings": True, "doctors": True, "finance": True, "support": True, "analytics": True},
+    "الطبيب": {"bookings": True, "doctors": True, "finance": False, "support": False, "analytics": False},
+    "المحاسب": {"bookings": False, "doctors": False, "finance": True, "support": False, "analytics": True},
+    "خدمة العملاء": {"bookings": True, "doctors": False, "finance": False, "support": True, "analytics": False},
+}
+
+PERMISSION_LABELS = {
+    "bookings": "إدارة الحجوزات",
+    "doctors": "فريق العمل الطبي",
+    "finance": "الفواتير والمدفوعات",
+    "support": "خدمة العملاء والرسائل",
+    "analytics": "التقارير والتحليلات",
+}
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def save_uploaded_file(file_storage, relative_folder, allowed_extensions):
+    if not file_storage or not file_storage.filename:
+        return None
+
+    filename = secure_filename(file_storage.filename)
+    extension = filename.rsplit('.', 1)[1].lower()
+    if allowed_extensions and extension not in allowed_extensions:
+        raise ValueError("نوع الملف غير مدعوم")
+
+    absolute_folder = os.path.join(STATIC_ROOT, relative_folder)
+    os.makedirs(absolute_folder, exist_ok=True)
+    unique_name = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}_{filename}"
+    path = os.path.join(absolute_folder, unique_name)
+    file_storage.save(path)
+    return f"{relative_folder}/{unique_name}".replace('\\', '/')
+
+
+def parse_service_links(selection_values):
+    package_ids, service_ids = set(), set()
+    for raw_value in selection_values:
+        if raw_value.startswith('package-'):
+            try:
+                package_ids.add(int(raw_value.split('-', 1)[1]))
+            except (ValueError, IndexError):
+                continue
+        elif raw_value.startswith('service-'):
+            try:
+                service_ids.add(int(raw_value.split('-', 1)[1]))
+            except (ValueError, IndexError):
+                continue
+    return package_ids, service_ids
+
+
+def sync_doctor_service_links(doctor, package_ids, service_ids):
+    desired_pairs = set()
+    if package_ids:
+        packages = Package.query.filter(
+            Package.id.in_(package_ids),
+            Package.provider_id == doctor.company_id
+        ).all()
+        for pkg in packages:
+            desired_pairs.add((pkg.id, None))
+
+    if service_ids:
+        services = (
+            PackageService.query
+            .join(Package, Package.id == PackageService.package_id)
+            .filter(
+                PackageService.id.in_(service_ids),
+                Package.provider_id == doctor.company_id
+            )
+            .all()
+        )
+        for service in services:
+            desired_pairs.add((service.package_id, service.id))
+
+    existing_links = DoctorServiceLink.query.filter_by(doctor_id=doctor.id).all()
+    existing_pairs = {(link.package_id, link.package_service_id): link for link in existing_links}
+
+    for pair, link in existing_pairs.items():
+        if pair not in desired_pairs:
+            db.session.delete(link)
+
+    for package_id, service_id in desired_pairs:
+        if (package_id, service_id) not in existing_pairs:
+            db.session.add(DoctorServiceLink(
+                doctor_id=doctor.id,
+                package_id=package_id,
+                package_service_id=service_id
+            ))
+
+
+def ensure_company_roles(company):
+    existing_names = {role.name for role in company.roles}
+    created = False
+    for role_name, perms in DEFAULT_ROLE_PERMISSIONS.items():
+        if role_name not in existing_names:
+            db.session.add(CompanyRole(company_id=company.id, name=role_name, permissions=perms))
+            created = True
+    if created:
+        db.session.commit()
 
 
 def validate_consultation_form(form_data):
@@ -336,6 +447,7 @@ def company_dashboard():
         return redirect(url_for('company_login'))
 
     company = Company.query.get_or_404(company_id)
+    ensure_company_roles(company)
 
     total_packages = Package.query.filter_by(provider_id=company.id).count()
     pending_packages = Package.query.filter_by(provider_id=company.id, status='pending').count()
@@ -360,7 +472,8 @@ def company_dashboard():
         .filter_by(company_id=company.id)
         .options(
             joinedload(Booking.user),
-            joinedload(Booking.package)
+            joinedload(Booking.package),
+            joinedload(Booking.doctor)
         )
         .order_by(Booking.requested_at.desc())
         .limit(5)
@@ -388,12 +501,235 @@ def company_dashboard():
         .all()
     )
 
+    packages_with_services = (
+        Package.query
+        .filter_by(provider_id=company.id)
+        .options(joinedload(Package.services))
+        .order_by(Package.title.asc())
+        .all()
+    )
+
+    doctors = (
+        Doctor.query
+        .filter_by(company_id=company.id)
+        .options(
+            joinedload(Doctor.service_links).joinedload(DoctorServiceLink.package),
+            joinedload(Doctor.service_links).joinedload(DoctorServiceLink.package_service),
+            joinedload(Doctor.reviews)
+        )
+        .all()
+    )
+
+    doctor_ids = [doctor.id for doctor in doctors if doctor.id]
+
+    doctor_ratings = {}
+    if doctor_ids:
+        rating_rows = (
+            db.session.query(
+                DoctorReview.doctor_id,
+                func.avg(DoctorReview.rating).label('avg_rating'),
+                func.count(DoctorReview.id).label('rating_count')
+            )
+            .filter(DoctorReview.doctor_id.in_(doctor_ids))
+            .group_by(DoctorReview.doctor_id)
+            .all()
+        )
+        doctor_ratings = {
+            row.doctor_id: {
+                'avg': float(row.avg_rating or 0),
+                'count': row.rating_count
+            }
+            for row in rating_rows
+        }
+
+    bookings_by_doctor = {}
+    completed_by_doctor = {}
+    doctor_revenue = {}
+    if doctor_ids:
+        booking_rows = (
+            db.session.query(Booking.doctor_id, func.count(Booking.id))
+            .filter(
+                Booking.company_id == company.id,
+                Booking.doctor_id.in_(doctor_ids)
+            )
+            .group_by(Booking.doctor_id)
+            .all()
+        )
+        bookings_by_doctor = {doctor_id: count for doctor_id, count in booking_rows}
+
+        completed_rows = (
+            db.session.query(Booking.doctor_id, func.count(Booking.id))
+            .filter(
+                Booking.company_id == company.id,
+                Booking.doctor_id.in_(doctor_ids),
+                Booking.status == 'completed'
+            )
+            .group_by(Booking.doctor_id)
+            .all()
+        )
+        completed_by_doctor = {doctor_id: count for doctor_id, count in completed_rows}
+
+        revenue_rows = (
+            db.session.query(Booking.doctor_id, func.coalesce(func.sum(Payment.amount), 0))
+            .join(Invoice, Payment.invoice_id == Invoice.id)
+            .join(Booking, Invoice.booking_id == Booking.id)
+            .filter(
+                Booking.company_id == company.id,
+                Payment.status == 'completed',
+                Booking.doctor_id.in_(doctor_ids)
+            )
+            .group_by(Booking.doctor_id)
+            .all()
+        )
+        doctor_revenue = {doctor_id: float(total or 0) for doctor_id, total in revenue_rows}
+
+    schedule_map = defaultdict(list)
+    if doctor_ids:
+        schedule_rows = (
+            db.session.query(
+                Appointment.doctor_id,
+                func.date(Appointment.date).label('slot_date'),
+                func.count(Appointment.id).label('slot_count')
+            )
+            .filter(
+                Appointment.company_id == company.id,
+                Appointment.doctor_id.in_(doctor_ids),
+                Appointment.date >= datetime.utcnow() - timedelta(days=1)
+            )
+            .group_by(Appointment.doctor_id, func.date(Appointment.date))
+            .all()
+        )
+        for doctor_id, slot_date, slot_count in schedule_rows:
+            if not doctor_id:
+                continue
+            if isinstance(slot_date, (datetime, date)):
+                slot_value = slot_date.isoformat()
+            else:
+                slot_value = str(slot_date)
+            schedule_map[doctor_id].append({
+                'date': slot_value,
+                'count': slot_count
+            })
+
+    doctor_cards = []
+    for doctor in doctors:
+        rating_info = doctor_ratings.get(doctor.id, {'avg': 0, 'count': 0})
+        package_badges = []
+        selected_package_ids = set()
+        selected_service_ids = set()
+        for link in doctor.service_links:
+            if link.package_service:
+                label = f"{link.package.title if link.package else ''} – {link.package_service.service_name}"
+                selected_service_ids.add(link.package_service.id)
+            elif link.package:
+                label = f"{link.package.title}"
+                selected_package_ids.add(link.package.id)
+            else:
+                label = None
+            if label:
+                package_badges.append(label)
+
+        doctor_cards.append({
+            'id': doctor.id,
+            'name': doctor.name,
+            'specialty': doctor.specialty,
+            'status': doctor.status,
+            'phone': doctor.phone,
+            'email': doctor.email,
+            'avg_rating': round(rating_info['avg'], 2) if rating_info['avg'] else 0,
+            'rating_count': rating_info['count'],
+            'total_bookings': bookings_by_doctor.get(doctor.id, 0),
+            'completed_bookings': completed_by_doctor.get(doctor.id, 0),
+            'revenue': doctor_revenue.get(doctor.id, 0.0),
+            'packages': package_badges,
+            'package_ids': list(selected_package_ids),
+            'service_ids': list(selected_service_ids),
+            'cv_summary': doctor.cv_summary,
+            'upcoming_slots': schedule_map.get(doctor.id, []),
+            'profile_picture': doctor.profile_picture or 'images/logo.jpg'
+        })
+
+    cancellation_rows = (
+        db.session.query(
+            BookingServiceSelection.service_name,
+            func.count(BookingServiceSelection.id).label('total'),
+            func.sum(case((Booking.status == 'cancelled', 1), else_=0)).label('cancelled')
+        )
+        .join(Booking, BookingServiceSelection.booking_id == Booking.id)
+        .filter(Booking.company_id == company.id)
+        .group_by(BookingServiceSelection.service_name)
+        .all()
+    )
+
+    cancellation_rates = []
+    for service_name, total, cancelled in cancellation_rows:
+        if not total:
+            continue
+        rate = (cancelled or 0) / total
+        cancellation_rates.append({
+            'service_name': service_name,
+            'rate': round(rate * 100, 1),
+            'total': total
+        })
+
+    specialty_rows = (
+        db.session.query(
+            Doctor.specialty,
+            BookingServiceSelection.service_name,
+            func.count(BookingServiceSelection.id).label('usage_count')
+        )
+        .join(Booking, BookingServiceSelection.booking_id == Booking.id)
+        .join(Doctor, Booking.doctor_id == Doctor.id)
+        .filter(Booking.company_id == company.id)
+        .group_by(Doctor.specialty, BookingServiceSelection.service_name)
+        .order_by(func.count(BookingServiceSelection.id).desc())
+        .limit(6)
+        .all()
+    )
+
+    top_services_by_specialty = [
+        {
+            'specialty': specialty or '—',
+            'service': service_name,
+            'count': usage
+        }
+        for specialty, service_name, usage in specialty_rows
+    ]
+
+    doctor_alerts = [
+        doctor for doctor in doctor_cards
+        if doctor['avg_rating'] and doctor['avg_rating'] < 3.5
+    ]
+
+    doctor_schedule_payload = {doctor['id']: doctor['upcoming_slots'] for doctor in doctor_cards}
+
+    performance_analytics = {
+        'bookings_per_doctor': [
+            {
+                'name': doctor['name'],
+                'total': doctor['total_bookings'],
+                'completed': doctor['completed_bookings']
+            }
+            for doctor in doctor_cards
+        ],
+        'revenue_per_doctor': [
+            {
+                'name': doctor['name'],
+                'revenue': doctor['revenue']
+            }
+            for doctor in sorted(doctor_cards, key=lambda d: d['revenue'], reverse=True)
+        ][:5],
+        'cancellation_rates': cancellation_rates,
+        'top_services_by_specialty': top_services_by_specialty
+    }
+
     status_labels = {
         'pending': 'قيد المراجعة',
         'approved': 'بانتظار الدفع',
         'completed': 'مكتمل',
         'cancelled': 'ملغي',
-        'rejected': 'مرفوض'
+        'rejected': 'مرفوض',
+        'in_progress': 'جاري التنفيذ'
     }
 
     metrics = {
@@ -420,8 +756,136 @@ def company_dashboard():
         recent_notifications=recent_notifications,
         top_services=top_services,
         status_labels=status_labels,
+        doctors=doctor_cards,
+        packages_with_services=packages_with_services,
+        doctor_schedule_data=doctor_schedule_payload,
+        performance_analytics=performance_analytics,
+        permission_labels=PERMISSION_LABELS,
+        company_roles=company.roles,
+        doctor_alerts=doctor_alerts,
         user=None
     )
+
+
+@app.route('/company/doctors/add', methods=['POST'])
+def company_add_doctor():
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل دخول الشركة", "danger")
+        return redirect(url_for('company_login'))
+
+    company = Company.query.get_or_404(company_id)
+
+    name = (request.form.get('name') or '').strip()
+    specialty = (request.form.get('specialty') or '').strip()
+    email = (request.form.get('email') or '').strip().lower()
+    phone = (request.form.get('phone') or '').strip()
+    status = request.form.get('status') or 'pending'
+    cv_summary = (request.form.get('cv_summary') or '').strip()
+    temp_password = request.form.get('password') or secrets.token_hex(4)
+
+    if not name or not specialty or not email:
+        flash('يرجى تعبئة الاسم، التخصص والبريد الإلكتروني', 'danger')
+        return redirect(url_for('company_dashboard') + '#doctor-management')
+
+    existing = Doctor.query.filter(func.lower(Doctor.email) == email).first()
+    if existing:
+        flash('هناك حساب طبيب بنفس البريد الإلكتروني', 'danger')
+        return redirect(url_for('company_dashboard') + '#doctor-management')
+
+    doctor = Doctor(
+        name=name,
+        specialty=specialty,
+        email=email,
+        phone=phone,
+        status=status,
+        cv_summary=cv_summary,
+        password=generate_password_hash(temp_password),
+        company_id=company.id
+    )
+
+    profile_file = request.files.get('profile_picture')
+    license_file = request.files.get('license_document')
+    certificate_file = request.files.get('certificate_document')
+
+    try:
+        if profile_file and profile_file.filename:
+            doctor.profile_picture = save_uploaded_file(profile_file, DOCTOR_PHOTO_FOLDER, ALLOWED_EXTENSIONS)
+        if license_file and license_file.filename:
+            doctor.license_document = save_uploaded_file(license_file, DOCTOR_DOCS_FOLDER, DOCUMENT_EXTENSIONS)
+        if certificate_file and certificate_file.filename:
+            doctor.certificate_document = save_uploaded_file(certificate_file, DOCTOR_DOCS_FOLDER, DOCUMENT_EXTENSIONS)
+    except ValueError as exc:
+        flash(str(exc), 'danger')
+        return redirect(url_for('company_dashboard') + '#doctor-management')
+
+    db.session.add(doctor)
+    db.session.flush()
+
+    selection_values = request.form.getlist('service_links')
+    package_ids, service_ids = parse_service_links(selection_values)
+    sync_doctor_service_links(doctor, package_ids, service_ids)
+    db.session.commit()
+
+    flash(f"تمت إضافة الطبيب {doctor.name}. كلمة المرور المؤقتة: {temp_password}", 'success')
+    return redirect(url_for('company_dashboard') + '#doctor-management')
+
+
+@app.route('/company/doctors/<int:doctor_id>/status', methods=['POST'])
+def company_update_doctor_status(doctor_id):
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل دخول الشركة", "danger")
+        return redirect(url_for('company_login'))
+
+    doctor = Doctor.query.filter_by(id=doctor_id, company_id=company_id).first_or_404()
+    status = request.form.get('status')
+    allowed_statuses = {'available', 'busy', 'vacation', 'pending'}
+    if status not in allowed_statuses:
+        flash('حالة الطبيب غير معتمدة', 'danger')
+        return redirect(url_for('company_dashboard') + '#doctor-management')
+
+    doctor.status = status
+    db.session.commit()
+    flash('تم تحديث حالة الطبيب', 'success')
+    return redirect(url_for('company_dashboard') + '#doctor-management')
+
+
+@app.route('/company/doctors/<int:doctor_id>/services', methods=['POST'])
+def company_update_doctor_services(doctor_id):
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل دخول الشركة", "danger")
+        return redirect(url_for('company_login'))
+
+    doctor = Doctor.query.filter_by(id=doctor_id, company_id=company_id).first_or_404()
+    selection_values = request.form.getlist('service_links')
+    package_ids, service_ids = parse_service_links(selection_values)
+    sync_doctor_service_links(doctor, package_ids, service_ids)
+    db.session.commit()
+    flash('تم تحديث ارتباطات الطبيب بالخدمات', 'success')
+    return redirect(url_for('company_dashboard') + '#doctor-management')
+
+
+@app.route('/company/roles/<int:role_id>/permissions', methods=['POST'])
+def company_update_role_permissions(role_id):
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل دخول الشركة", "danger")
+        return redirect(url_for('company_login'))
+
+    role = CompanyRole.query.get_or_404(role_id)
+    if role.company_id != company_id:
+        flash('لا تملك صلاحية تعديل هذا الدور', 'danger')
+        return redirect(url_for('company_dashboard') + '#role-settings')
+
+    selected_permissions = set(request.form.getlist('permissions'))
+    updated_permissions = {key: (key in selected_permissions) for key in PERMISSION_LABELS.keys()}
+    role.permissions = updated_permissions
+    db.session.commit()
+
+    flash(f"تم تحديث صلاحيات دور {role.name}", 'success')
+    return redirect(url_for('company_dashboard') + '#role-settings')
 
 # ------------------- بوابة الأطباء -------------------
 @app.route('/doctor/login', methods=['GET', 'POST'])
@@ -462,6 +926,36 @@ def doctor_logout():
 @doctor_login_required
 def doctor_dashboard():
     doctor = get_logged_in_doctor()
+    range_key = request.args.get('range', 'today')
+    valid_ranges = {'today': 'اليوم', 'week': 'هذا الأسبوع', 'all': 'الكل'}
+    if range_key not in valid_ranges:
+        range_key = 'today'
+
+    bookings_query = (
+        Booking.query
+        .outerjoin(Appointment, Booking.appointment_id == Appointment.id)
+        .options(
+            joinedload(Booking.user),
+            joinedload(Booking.package),
+            joinedload(Booking.selected_services),
+            joinedload(Booking.invoices),
+            joinedload(Booking.appointment)
+        )
+        .filter(Booking.doctor_id == doctor.id)
+    )
+
+    date_expr = func.coalesce(Booking.scheduled_for, Appointment.date)
+    now = datetime.utcnow()
+    if range_key == 'today':
+        start = datetime(now.year, now.month, now.day)
+        end = start + timedelta(days=1)
+        bookings_query = bookings_query.filter(date_expr >= start, date_expr < end)
+    elif range_key == 'week':
+        start_of_week = datetime(now.year, now.month, now.day) - timedelta(days=now.weekday())
+        end_of_week = start_of_week + timedelta(days=7)
+        bookings_query = bookings_query.filter(date_expr >= start_of_week, date_expr < end_of_week)
+
+    bookings = bookings_query.order_by(date_expr.asc().nullslast()).all()
 
     # استشارات جديدة من نفس التخصص وغير معينة
     new_consultations_query = Consultation.query.filter(Consultation.status == 'new')
@@ -493,8 +987,23 @@ def doctor_dashboard():
     stats = {
         "active": len(active_consultations),
         "answered": len(answered_consultations),
-        "waiting": len(new_consultations)
+        "waiting": len(new_consultations),
+        "bookings": len(bookings)
     }
+
+    booking_status_labels = {
+        'pending': 'بانتظار المراجعة',
+        'approved': 'مؤكد',
+        'completed': 'مكتمل',
+        'cancelled': 'ملغي',
+        'rejected': 'مرفوض'
+    }
+
+    status_choices = [
+        ('approved', 'مؤكد'),
+        ('completed', 'مكتمل'),
+        ('cancelled', 'ملغي')
+    ]
 
     return render_template(
         'doctor_dashboard.html',
@@ -502,8 +1011,53 @@ def doctor_dashboard():
         stats=stats,
         new_consultations=new_consultations,
         active_consultations=active_consultations,
-        answered_consultations=answered_consultations
+        answered_consultations=answered_consultations,
+        bookings=bookings,
+        booking_filters=valid_ranges,
+        selected_range=range_key,
+        booking_status_labels=booking_status_labels,
+        booking_status_choices=status_choices
     )
+
+
+@app.route('/doctor/bookings/<int:booking_id>/status', methods=['POST'])
+@doctor_login_required
+def doctor_update_booking_status(booking_id):
+    doctor = get_logged_in_doctor()
+    booking = Booking.query.get_or_404(booking_id)
+
+    if booking.doctor_id != doctor.id:
+        flash("لا يمكنك تعديل هذا الحجز", "danger")
+        return redirect(url_for('doctor_dashboard'))
+
+    new_status = request.form.get('status')
+    allowed_statuses = {'approved', 'completed', 'cancelled'}
+    if new_status not in allowed_statuses:
+        flash("حالة غير مدعومة", "danger")
+        return redirect(url_for('doctor_dashboard'))
+
+    if booking.status == new_status:
+        flash("لم يتم تغيير الحالة", "info")
+        return redirect(url_for('doctor_dashboard'))
+
+    booking.status = new_status
+    history = BookingStatusHistory(
+        booking_id=booking.id,
+        status=new_status,
+        note=f"تم التحديث بواسطة الطبيب {doctor.name}"
+    )
+    db.session.add(history)
+
+    if booking.appointment:
+        if new_status == 'completed':
+            booking.appointment.status = 'completed'
+        elif new_status == 'cancelled':
+            booking.appointment.status = 'cancelled'
+        booking.appointment.status_updated_at = datetime.utcnow()
+
+    db.session.commit()
+    flash("تم تحديث حالة الحجز", "success")
+    return redirect(url_for('doctor_dashboard', range=request.args.get('range', 'today')))
 
 
 @app.route('/doctor/consultations/<int:consultation_id>')
@@ -898,11 +1452,14 @@ def company_bookings():
             joinedload(Booking.package),
             joinedload(Booking.user),
             joinedload(Booking.selected_services),
-            joinedload(Booking.status_history)
+            joinedload(Booking.status_history),
+            joinedload(Booking.doctor)
         )
         .order_by(Booking.requested_at.desc())
         .all()
     )
+
+    company_doctors = Doctor.query.filter_by(company_id=company.id).order_by(Doctor.name.asc()).all()
 
     status_labels = {
         'pending': 'قيد المراجعة',
@@ -917,6 +1474,7 @@ def company_bookings():
         company=company,
         bookings=bookings,
         status_labels=status_labels,
+        doctors=company_doctors,
         user=None
     )
 
@@ -998,6 +1556,57 @@ def company_booking_decision(booking_id):
     flash('تم تحديث حالة الحجز', 'success')
     return redirect(url_for('company_bookings'))
 
+
+@app.route('/company/bookings/<int:booking_id>/assign_doctor', methods=['POST'])
+def company_assign_doctor(booking_id):
+    company_id = session.get('company_id')
+    if not company_id:
+        flash("يجب تسجيل دخول الشركة", "danger")
+        return redirect(url_for('company_login'))
+
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.company_id != company_id:
+        flash('لا يمكنك تعديل هذا الحجز', 'danger')
+        return redirect(url_for('company_bookings'))
+
+    doctor_id = request.form.get('doctor_id')
+    if not doctor_id:
+        flash('يرجى اختيار طبيب', 'danger')
+        return redirect(url_for('company_bookings'))
+
+    try:
+        doctor_id = int(doctor_id)
+    except ValueError:
+        flash('المعرف غير صالح', 'danger')
+        return redirect(url_for('company_bookings'))
+
+    doctor = Doctor.query.filter_by(id=doctor_id, company_id=company_id).first()
+    if not doctor:
+        flash('لم يتم العثور على الطبيب المطلوب', 'danger')
+        return redirect(url_for('company_bookings'))
+
+    booking.doctor_id = doctor.id
+    if booking.appointment:
+        booking.appointment.doctor_id = doctor.id
+
+    status_note = BookingStatusHistory(
+        booking_id=booking.id,
+        status=booking.status,
+        note=f'تم إسناد الحجز إلى الطبيب {doctor.name}'
+    )
+    db.session.add(status_note)
+
+    if booking.user_id:
+        db.session.add(DoctorMessage(
+            user_id=booking.user_id,
+            doctor_id=doctor.id,
+            message=f"تم تعيينك لمتابعة حجز رقم {booking.id}."
+        ))
+
+    db.session.commit()
+    flash('تم ربط الحجز بالطبيب المختار', 'success')
+    return redirect(url_for('company_bookings'))
+
 @app.route('/appointments')
 def appointments():
     user_id = session.get("user_id")
@@ -1012,7 +1621,10 @@ def appointments():
             joinedload(Appointment.bookings)
             .joinedload(Booking.selected_services),
             joinedload(Appointment.bookings).joinedload(Booking.package),
-            joinedload(Appointment.bookings).joinedload(Booking.invoices)
+            joinedload(Appointment.bookings).joinedload(Booking.invoices),
+            joinedload(Appointment.bookings).joinedload(Booking.reviews),
+            joinedload(Appointment.bookings).joinedload(Booking.doctor),
+            joinedload(Appointment.doctor_obj)
         )
         .order_by(Appointment.date.desc())
         .all()
@@ -1147,6 +1759,75 @@ def booking_payment(booking_id):
         service_total=service_total,
         user=User.query.get(user_id)
     )
+
+
+@app.route('/bookings/<int:booking_id>/doctor_review', methods=['POST'])
+def submit_doctor_review(booking_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        flash("يجب تسجيل الدخول أولاً", "danger")
+        return redirect(url_for('login'))
+
+    booking = (
+        Booking.query
+        .options(
+            joinedload(Booking.appointment).joinedload(Appointment.doctor_obj),
+            joinedload(Booking.doctor)
+        )
+        .get_or_404(booking_id)
+    )
+
+    if booking.user_id != user_id:
+        flash('لا يمكنك تقييم هذا الحجز', 'danger')
+        return redirect(url_for('appointments'))
+
+    doctor = booking.doctor or (booking.appointment.doctor_obj if booking.appointment else None)
+    if not doctor:
+        flash('لم يتم تعيين طبيب لهذا الحجز بعد', 'warning')
+        return redirect(url_for('appointments'))
+
+    if booking.status != 'completed':
+        flash('لا يمكن إضافة التقييم قبل اكتمال الحجز', 'warning')
+        return redirect(url_for('appointments'))
+
+    try:
+        rating = int(request.form.get('rating', 0))
+    except ValueError:
+        rating = 0
+
+    try:
+        bedside = int(request.form.get('bedside_manner', 0))
+    except ValueError:
+        bedside = None
+
+    notes = (request.form.get('notes') or '').strip()
+
+    if rating not in {1, 2, 3, 4, 5}:
+        flash('التقييم يجب أن يكون بين 1 و5', 'danger')
+        return redirect(url_for('appointments'))
+
+    existing_review = DoctorReview.query.filter_by(booking_id=booking.id, user_id=user_id).first()
+    if existing_review:
+        existing_review.rating = rating
+        existing_review.bedside_manner = bedside
+        existing_review.notes = notes or existing_review.notes
+        message = 'تم تحديث تقييم الطبيب'
+    else:
+        review = DoctorReview(
+            doctor_id=doctor.id,
+            user_id=user_id,
+            booking_id=booking.id,
+            appointment_id=booking.appointment_id,
+            rating=rating,
+            bedside_manner=bedside,
+            notes=notes
+        )
+        db.session.add(review)
+        message = 'تم إرسال تقييم الطبيب'
+
+    db.session.commit()
+    flash(message, 'success')
+    return redirect(url_for('appointments'))
 
 
 # ------------------- إنشاء حجز جديد -------------------
