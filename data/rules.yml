@@ -1,18 +1,30 @@
 version: "3.1"
 
 rules:
-
-- rule: Say goodbye in Arabic
+- rule: Activate custom package form
   steps:
-  - intent: goodbye_ar
-  - action: utter_goodbye_ar
+    - intent: request_custom_package
+    - action: action_reset_custom_package_slots
+    - action: package_custom_form
+    - active_loop: package_custom_form
 
-- rule: Say goodbye in English
+- rule: Submit custom package form
+  condition:
+    - active_loop: package_custom_form
   steps:
-  - intent: goodbye_en
-  - action: utter_goodbye_en
+    - action: package_custom_form
+    - active_loop: null
+    - slot_was_set:
+        - requested_slot: null
+    - action: utter_package_form_ack
+    - action: action_recommend_package
 
-- rule: Say 'I am a bot' anytime the user challenges
+- rule: Smart fallback
   steps:
-  - intent: bot_challenge
-  - action: utter_iamabot
+    - intent: nlu_fallback
+    - action: action_smart_response
+
+- rule: Respond to bot challenge
+  steps:
+    - intent: bot_challenge
+    - action: utter_iamabot

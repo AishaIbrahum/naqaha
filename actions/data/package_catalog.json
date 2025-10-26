@@ -1,0 +1,116 @@
+{
+  "packages": [
+    {
+      "id": "basic_recovery",
+      "title_en": "Basic Recovery Care",
+      "title_ar": "باقة التعافي الأساسية",
+      "description_en": "Foundational medical travel support with essential diagnostics, coordinated appointments, and comfortable lodging",
+      "description_ar": "دعم طبي وسفري أساسي يشمل الفحوصات الضرورية وتنسيق المواعيد وإقامة مريحة",
+      "services_en": [
+        "Comprehensive initial medical assessment",
+        "Standard hotel or medical accommodation",
+        "Airport pickup and clinic transfers",
+        "Medical interpreter during key visits",
+        "Post-visit follow-up call"
+      ],
+      "services_ar": [
+        "تقييم طبي شامل في بداية الرحلة",
+        "إقامة طبية أو فندقية مريحة",
+        "استقبال من المطار والتنقل للعيادات",
+        "مترجم طبي خلال الزيارات الأساسية",
+        "متابعة بعد الزيارة للتأكد من التعافي"
+      ],
+      "focus_areas": [
+        "general checkup",
+        "rehabilitation",
+        "orthopedic",
+        "post-surgery"
+      ],
+      "cities": [
+        "Riyadh",
+        "Jeddah"
+      ],
+      "price_range": {
+        "min": 8000,
+        "max": 9500
+      }
+    },
+    {
+      "id": "premium_recovery",
+      "title_en": "Premium Recovery Plus",
+      "title_ar": "باقة النقاهة المميزة",
+      "description_en": "Enhanced comfort with upgraded lodging, extended interpreter coverage, and personalized care coordination",
+      "description_ar": "راحة أعلى مع سكن مطور وتغطية أطول للمترجم الطبي وتنسيق رعاية مخصص",
+      "services_en": [
+        "Consultations with sub-specialist physicians",
+        "4-star hotel or medical suite accommodation",
+        "Daily private transport between appointments",
+        "On-call medical translator and concierge",
+        "Nutrition and wellness planning",
+        "Extended follow-up with care coordinator"
+      ],
+      "services_ar": [
+        "استشارات مع أطباء تخصصات دقيقة",
+        "إقامة في فندق 4 نجوم أو جناح طبي",
+        "نقل خاص يومي بين المواعيد",
+        "مترجم طبي وخدمة كونسيرج على مدار الساعة",
+        "تخطيط غذائي وبرنامج عافية",
+        "متابعة ممتدة مع منسق الرعاية"
+      ],
+      "focus_areas": [
+        "cardiac",
+        "oncology",
+        "fertility",
+        "complex rehabilitation"
+      ],
+      "cities": [
+        "Riyadh",
+        "Jeddah",
+        "Abu Dhabi"
+      ],
+      "price_range": {
+        "min": 12000,
+        "max": 15000
+      }
+    },
+    {
+      "id": "gold_signature",
+      "title_en": "Gold Signature Experience",
+      "title_ar": "باقة الذهبية الفاخرة",
+      "description_en": "Luxury medical travel journey with private suites, dedicated care team, and bespoke well-being program",
+      "description_ar": "رحلة طبية فاخرة مع أجنحة خاصة وفريق رعاية مخصص وبرنامج رفاهية مصمم بالكامل",
+      "services_en": [
+        "Pre-arrival virtual consultation with medical director",
+        "5-star residence with companion accommodation",
+        "Dedicated nurse navigator and personal coordinator",
+        "VIP transport and fast-track hospital access",
+        "Personalised wellness and cultural experiences",
+        "Extended remote monitoring after return home"
+      ],
+      "services_ar": [
+        "استشارة افتراضية قبل الوصول مع المدير الطبي",
+        "إقامة خمس نجوم مع إمكانية مرافقة",
+        "ممرضة مرافقة ومنسق شخصي",
+        "نقل VIP ودخول سريع للمستشفيات",
+        "تجارب رفاهية وثقافية مصممة خصيصًا",
+        "مراقبة ممتدة عن بعد بعد العودة للمنزل"
+      ],
+      "focus_areas": [
+        "executive health",
+        "complex surgery",
+        "long-term rehabilitation",
+        "luxury wellness"
+      ],
+      "cities": [
+        "Riyadh",
+        "Jeddah",
+        "Dubai",
+        "Geneva"
+      ],
+      "price_range": {
+        "min": 18500,
+        "max": 26000
+      }
+    }
+  ]
+}

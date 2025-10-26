@@ -13,12 +13,71 @@ intents:
   - ask_package_customization_en
   - ask_package_comparison_ar
   - ask_package_comparison_en
+<<<<<<< HEAD
   - ask_company_portal_ar
   - ask_partner_portal_ar
   - ask_doctor_portal_ar
+=======
+  - request_custom_package
+>>>>>>> ccfdf7f83b7a9a10fe79f0f31fcfa862e233c672
   - goodbye_ar
   - goodbye_en
   - bot_challenge
+
+entities:
+  - budget
+  - medical_need
+  - preferred_city
+  - selected_package
+
+slots:
+  budget:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: budget
+      - type: from_text
+        conditions:
+          - active_loop: package_custom_form
+            requested_slot: budget
+  medical_need:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: medical_need
+      - type: from_text
+        conditions:
+          - active_loop: package_custom_form
+            requested_slot: medical_need
+  preferred_city:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: preferred_city
+      - type: from_text
+        conditions:
+          - active_loop: package_custom_form
+            requested_slot: preferred_city
+  selected_package:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  language_preference:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+
+forms:
+  package_custom_form:
+    required_slots:
+      - medical_need
+      - budget
+      - preferred_city
 
 responses:
   utter_greet_ar:
@@ -128,3 +187,25 @@ responses:
     
   utter_iamabot:
     - text: "أنا مساعد ذكي مبني بواسطة Rasa 🤖 وأخدمك عبر نقاهة 🌿\nI’m an intelligent assistant built with Rasa 🤖 and I serve you through Naqaha 🌿"
+
+  utter_ask_medical_need:
+    - text: "To tailor the right package, could you describe the medical need or procedure you are planning? / لو تكرمت صف احتياجك الطبي أو الإجراء المطلوب."
+
+  utter_ask_budget:
+    - text: "What budget range should we stay within (for example SAR 12000)? / ما هو نطاق الميزانية التقريبية (مثال: 12000 ريال)؟"
+
+  utter_ask_preferred_city:
+    - text: "Which city would you prefer for treatment or recovery? / أي مدينة تفضل للعلاج أو فترة النقاهة؟"
+
+  utter_package_form_ack:
+    - text: "جميل! سأستخدم هذه التفاصيل لأرشح لك باقة مناسبة. / Great! I'll use these details to recommend a tailored package for you."
+
+actions:
+  - action_smart_response
+  - action_recommend_package
+  - action_reset_custom_package_slots
+  - validate_package_custom_form
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
