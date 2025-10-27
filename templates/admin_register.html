@@ -1,21 +1,338 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل Admin</title>
+    <title>إنشاء حساب الأدمن | نقاهة</title>
+    <style>
+        :root {
+            --primary-color: #00a8a8;
+            --secondary-color: #008080;
+            --accent-color: #ffc107;
+            --background-soft: #e5f6f6;
+            --text-strong: #0f172a;
+            --text-muted: #5b6b7d;
+            --radius-lg: 28px;
+            --shadow-xl: 0 32px 80px rgba(0, 47, 47, 0.2);
+            --shadow-md: 0 20px 45px rgba(0, 68, 68, 0.16);
+            --transition: all 0.25s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: "Segoe UI", "Cairo", sans-serif;
+            background: radial-gradient(circle at top right, rgba(0, 168, 168, 0.12), transparent 40%),
+                        linear-gradient(180deg, #f8ffff 0%, #ebfcfb 40%, #e1f5f5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: var(--text-strong);
+        }
+
+        .auth-shell {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(18px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            width: min(1080px, 100%);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            overflow: hidden;
+        }
+
+        .form-section {
+            padding: 52px 56px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            position: relative;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: rgba(0, 168, 168, 0.12);
+            color: var(--secondary-color);
+            font-weight: 600;
+            font-size: 0.95rem;
+            width: fit-content;
+        }
+
+        .brand-badge::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            box-shadow: 0 0 12px rgba(255, 193, 7, 0.7);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.1rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        form {
+            display: grid;
+            gap: 18px;
+        }
+
+        .input-group {
+            display: grid;
+            gap: 10px;
+        }
+
+        .input-group label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper span {
+            position: absolute;
+            inset-inline-start: 16px;
+            inset-block-start: 50%;
+            transform: translateY(-50%);
+            color: rgba(0, 128, 128, 0.7);
+            font-size: 1rem;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 48px 14px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 128, 128, 0.15);
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            font-family: inherit;
+            color: var(--text-strong);
+            transition: var(--transition);
+        }
+
+        input::placeholder {
+            color: rgba(91, 107, 125, 0.7);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(0, 168, 168, 0.12);
+            background: #fff;
+        }
+
+        .btn-primary {
+            margin-top: 6px;
+            padding: 15px 18px;
+            border-radius: 18px;
+            border: none;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(120deg, var(--primary-color) 0%, var(--secondary-color) 65%, rgba(0, 128, 128, 0.95) 100%);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 55px rgba(0, 80, 80, 0.2);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .alt-action {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .alt-action a {
+            color: var(--secondary-color);
+            font-weight: 600;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(0, 128, 128, 0.35);
+            padding-bottom: 2px;
+            transition: var(--transition);
+        }
+
+        .alt-action a:hover {
+            color: var(--accent-color);
+            border-color: rgba(255, 193, 7, 0.6);
+        }
+
+        .visual-section {
+            position: relative;
+            background: linear-gradient(150deg, var(--secondary-color) 0%, rgba(0, 128, 128, 0.85) 35%, rgba(0, 80, 80, 0.82) 100%);
+            display: grid;
+            place-items: center;
+            padding: 48px 36px;
+        }
+
+        .visual-card {
+            position: relative;
+            width: 100%;
+            max-width: 380px;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, rgba(0, 168, 168, 0.2) 0%, rgba(0, 32, 32, 0.75) 100%);
+            border-radius: 34px;
+            padding: 32px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+            display: grid;
+            gap: 16px;
+            color: #f4ffff;
+        }
+
+        .visual-card h2 {
+            margin: 0;
+            font-size: 1.6rem;
+            line-height: 1.5;
+        }
+
+        .visual-card p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.78);
+            line-height: 1.7;
+        }
+
+        .visual-card::before,
+        .visual-card::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 193, 7, 0.8) 0%, rgba(255, 193, 7, 0) 65%);
+            filter: blur(0.4px);
+        }
+
+        .visual-card::before {
+            width: 160px;
+            height: 160px;
+            top: -60px;
+            inset-inline-start: -40px;
+            opacity: 0.7;
+        }
+
+        .visual-card::after {
+            width: 140px;
+            height: 140px;
+            bottom: -40px;
+            inset-inline-end: -30px;
+            opacity: 0.5;
+        }
+
+        .orbit {
+            position: absolute;
+            inset: -24px;
+            border-radius: 40px;
+            border: 2px dashed rgba(255, 255, 255, 0.12);
+            animation: orbit 14s linear infinite;
+        }
+
+        @keyframes orbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
+        }
+
+        @media (max-width: 920px) {
+            .form-section {
+                padding: 40px 32px;
+            }
+            .visual-section {
+                padding: 32px;
+            }
+            .visual-card {
+                max-width: 320px;
+                padding: 28px;
+            }
+        }
+
+        @media (max-width: 720px) {
+            body {
+                padding: 16px;
+            }
+            .auth-shell {
+                border-radius: 24px;
+            }
+            .visual-section {
+                order: -1;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>تسجيل حساب الأدمن</h2>
-    <form action="{{ url_for('admin_register') }}" method="POST">
-        <label>اسم المستخدم:</label>
-        <input type="text" name="username" required><br>
-        <label>كلمة المرور:</label>
-        <input type="password" name="password" required><br>
-        <button type="submit">سجل الآن</button>
-    </form>
-    <p>لديك حساب بالفعل؟ 
-        <a href="{{ url_for('admin_login') }}">سجل الدخول</a>
-    </p>
+    <main class="auth-shell">
+        <section class="form-section">
+            <span class="brand-badge">منصة نقاهة</span>
+            <header>
+                <h1>إنشاء حساب أدمن</h1>
+                <p class="subtitle">
+                    تتيح لك لوحة التحكم متابعة مقدمي الخدمات والحجوزات والإشعارات اليومية بكل سهولة.
+                </p>
+            </header>
+
+            <form action="{{ url_for('admin_register') }}" method="POST">
+                <div class="input-group">
+                    <label for="username">اسم المستخدم</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbol">👤</span>
+                        <input id="username" type="text" name="username" placeholder="اكتب اسم المستخدم" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">كلمة المرور</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbol">🔒</span>
+                        <input id="password" type="password" name="password" placeholder="اختر كلمة مرور قوية" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">إنشاء الحساب</button>
+            </form>
+
+            <p class="alt-action">
+                لديك حساب أدمن بالفعل؟
+                <a href="{{ url_for('admin_login') }}">تسجيل الدخول الآن</a>
+            </p>
+        </section>
+
+        <aside class="visual-section" aria-hidden="true">
+            <div class="visual-card">
+                <div class="orbit"></div>
+                <h2>تحكم شامل في عمليات نقاهة</h2>
+                <p>
+                    راقب الباقات، اعتمد مقدمي الخدمات الجدد، وتابع الحجوزات في تجربة موحدة
+                    مصممة لتمنحك الوضوح وسرعة الاستجابة.
+                </p>
+                <p>
+                    مع واجهة ذكية وسهلة الاستخدام، يمكنك إدارة كل ما يتعلق بالرحلات
+                    العلاجية والعمليات السياحية من مكان واحد.
+                </p>
+            </div>
+        </aside>
+    </main>
 </body>
 </html>
