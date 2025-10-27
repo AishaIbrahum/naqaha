@@ -1,67 +1,847 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="admin-dashboard">
-  <h1 class="section-title">لوحة التحكم</h1>
-  <p class="subtitle">تابع مهام المراجعة والإشراف على المحتوى المقدم من الشركات.</p>
+  <header class="dashboard-header">
+    <div>
+      <h1>لوحة تحكم منصة نقاهة</h1>
+      <p>راقب سير العمل الطبي والسياحي عبر نظرة شاملة على الأداء، المستخدمين، والحجوزات.</p>
+    </div>
+    <div class="header-indicator">
+      <span class="indicator-label">إشعارات جديدة</span>
+      <span class="indicator-badge">{{ data.notifications.unread_count }}</span>
+    </div>
+  </header>
 
-  <div class="cards">
-    <article class="card">
-      <h2>طلبات الباقات قيد المراجعة</h2>
-      <p class="count">{{ pending_packages }}</p>
-      <a class="cta" href="{{ url_for('admin_packages') }}">عرض وإدارة الطلبات</a>
+  <section class="overview" aria-labelledby="overview">
+    <h2 id="overview">نظرة عامة لحظية</h2>
+    <div class="metrics-grid">
+      <article class="metric-card">
+        <h3>عدد المستخدمين</h3>
+        <p class="metric-value">{{ data.users.total }}</p>
+        <span class="metric-hint">مرضى وزوار مسجلون</span>
+      </article>
+      <article class="metric-card">
+        <h3>مقدمو الخدمات</h3>
+        <p class="metric-value">{{ data.providers.companies + data.providers.doctors }}</p>
+        <span class="metric-hint">مستشفيات ({{ data.providers.companies }}) &nbsp;|&nbsp; أطباء ({{ data.providers.doctors }})</span>
+      </article>
+      <article class="metric-card">
+        <h3>الرحلات العلاجية</h3>
+        <p class="metric-value">{{ data.bookings.total }}</p>
+        <span class="metric-hint">جميع الحجوزات عبر المنصة</span>
+      </article>
+      <article class="metric-card">
+        <h3>الباقات المعتمدة</h3>
+        <p class="metric-value">{{ data.packages.approved }}</p>
+        <span class="metric-hint">الباقات الجاهزة المتاحة للمرضى</span>
+      </article>
+      <article class="metric-card">
+        <h3>باقات مخصصة</h3>
+        <p class="metric-value">{{ data.packages.custom_bookings }}</p>
+        <span class="metric-hint">حجوزات تم تفصيلها حسب الطلب</span>
+      </article>
+      <article class="metric-card metric-accent">
+        <h3>الإيرادات الشهرية</h3>
+        <p class="metric-value">
+          {{ "{:,.0f}".format(data.finance.monthly_revenue or 0) }}
+          <span class="currency">ر.س</span>
+        </p>
+        <span class="metric-hint">التحصيلات المدفوعة منذ بداية الشهر</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="split-section">
+    <article class="panel" aria-labelledby="customer-satisfaction">
+      <header>
+        <h2 id="customer-satisfaction">رضا العملاء</h2>
+        <span class="panel-subtitle">متوسط تقييم الخبرات الطبية</span>
+      </header>
+      <div class="satisfaction-gauge">
+        <svg viewBox="0 0 36 36">
+          <path class="gauge-bg" d="M18 2.5a15.5 15.5 0 1 1 0 31 15.5 15.5 0 1 1 0-31"/>
+          <path class="gauge-meter" stroke-dasharray="{{ data.satisfaction.percentage }}, 100" d="M18 2.5a15.5 15.5 0 1 1 0 31 15.5 15.5 0 1 1 0-31"/>
+        </svg>
+        <div class="gauge-value">
+          <span class="value">{{ data.satisfaction.percentage }}%</span>
+          <span class="caption">({{ "%.1f"|format(data.satisfaction.average_score or 0) }} / 5)</span>
+        </div>
+      </div>
+      <p class="panel-note">يعتمد المؤشر على متوسط تقييمات المرضى للأطباء المسجلين في المنصة.</p>
     </article>
-  </div>
+
+    <article class="panel" aria-labelledby="notifications">
+      <header>
+        <h2 id="notifications">أحدث الإشعارات</h2>
+        <span class="panel-subtitle">متابعة الطلبات والأنشطة الجديدة</span>
+      </header>
+      <ul class="notifications-list">
+        {% for notification in data.notifications.recent %}
+          <li>
+            <div>
+              <strong>{{ notification.title or "بدون عنوان" }}</strong>
+              <p>{{ notification.body or "لا توجد تفاصيل إضافية." }}</p>
+            </div>
+            <time datetime="{{ notification.created_at.isoformat() if notification.created_at }}">
+              {{ notification.created_at.strftime('%Y-%m-%d %H:%M') if notification.created_at else '—' }}
+            </time>
+          </li>
+        {% else %}
+          <li class="empty-state">لا توجد إشعارات حديثة.</li>
+        {% endfor %}
+      </ul>
+    </article>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="users-management">
+    <header>
+      <div>
+        <h2 id="users-management">إدارة المستخدمين</h2>
+        <p>تابع نشاط المرضى والمترجمين والزوار، وقم بتفعيل الحسابات أو تحديث بياناتهم.</p>
+      </div>
+      <a class="section-link" href="#">استعراض جميع المستخدمين</a>
+    </header>
+    <div class="content-table">
+      <div class="table-head">
+        <span>المستخدم</span>
+        <span>البريد الإلكتروني</span>
+        <span>رقم التواصل</span>
+        <span>إجراءات سريعة</span>
+      </div>
+      {% for user in data.users.recent %}
+        <div class="table-row">
+          <span>{{ user.first_name }} {{ user.last_name }}</span>
+          <span>{{ user.email }}</span>
+          <span>{{ user.phone or 'غير متوفر' }}</span>
+          <span class="row-actions">
+            <button type="button">عرض الملف</button>
+            <button type="button" class="secondary">تحديث الحالة</button>
+          </span>
+        </div>
+      {% else %}
+        <div class="table-row empty-state">لا يوجد مستخدمون جدد حالياً.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="providers-management">
+    <header>
+      <div>
+        <h2 id="providers-management">إدارة مقدمي الخدمات</h2>
+        <p>اعتمد المستشفيات والعيادات الجديدة، وتابع تقييمات الأطباء ونسب رضا العملاء.</p>
+      </div>
+      <div class="cta-group">
+        <a class="section-link" href="#">إضافة مستشفى</a>
+        <a class="section-link" href="#">إضافة طبيب</a>
+      </div>
+    </header>
+    <div class="providers-grid">
+      <article class="providers-panel">
+        <h3>أبرز الأطباء</h3>
+        <ul>
+          {% for doctor, reviews_count, avg_rating in data.providers.latest %}
+            <li>
+              <div>
+                <strong>{{ doctor.name }}</strong>
+                <span class="hint">{{ doctor.specialty or 'غير محدد' }}</span>
+              </div>
+              <div class="provider-meta">
+                <span>التقييم: {{ "%.1f"|format(avg_rating or 0) }}/5</span>
+                <span>المراجعات: {{ reviews_count }}</span>
+              </div>
+            </li>
+          {% else %}
+            <li class="empty-state">لا توجد بيانات تقييم لعرضها.</li>
+          {% endfor %}
+        </ul>
+      </article>
+
+      <article class="providers-panel">
+        <h3>طلبات الانضمام</h3>
+        <ul>
+          {% for doctor in data.providers.pending %}
+            <li>
+              <div>
+                <strong>{{ doctor.name }}</strong>
+                <span class="hint">{{ doctor.company.name if doctor.company else 'بدون جهة' }}</span>
+              </div>
+              <div class="provider-meta">
+                <span>التخصص: {{ doctor.specialty or 'غير محدد' }}</span>
+                <span>الحالة: {{ doctor.status }}</span>
+              </div>
+            </li>
+          {% else %}
+            <li class="empty-state">لا توجد طلبات انضمام معلقة حالياً.</li>
+          {% endfor %}
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="bookings">
+    <header>
+      <div>
+        <h2 id="bookings">الحجوزات والمعاملات</h2>
+        <p>راجع حالة الرحلات العلاجية وتابع التحويلات المالية وخطوات الطلب.</p>
+      </div>
+      <a class="section-link" href="#">فتح لوحة الحجوزات</a>
+    </header>
+    <div class="bookings-layout">
+      <div class="status-board">
+        {% for status, count in data.bookings.statuses.items() %}
+          <div class="status-chip">
+            <span class="status-label">{{ status }}</span>
+            <span class="status-count">{{ count }}</span>
+          </div>
+        {% else %}
+          <div class="empty-state">لا توجد حجوزات مسجلة.</div>
+        {% endfor %}
+      </div>
+      <div class="latest-table">
+        <div class="table-head">
+          <span>المريض</span>
+          <span>الباقة / الخدمة</span>
+          <span>الحالة الحالية</span>
+          <span>تاريخ الطلب</span>
+        </div>
+        {% for booking in data.bookings.latest %}
+          <div class="table-row">
+            <span>{{ booking.user.first_name if booking.user else 'زائر' }}</span>
+            <span>{{ booking.package.title if booking.package else 'خدمة مخصصة' }}</span>
+            <span class="status-pill status-{{ booking.status }}">{{ booking.status }}</span>
+            <span>{{ booking.requested_at.strftime('%Y-%m-%d') if booking.requested_at else '—' }}</span>
+          </div>
+        {% else %}
+          <div class="table-row empty-state">لا توجد حجوزات حديثة.</div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="alerts">
+      <h3>تنبيهات عاجلة</h3>
+      <ul>
+        {% for booking in data.bookings.alerts %}
+          <li>
+            <span>حجز #{{ booking.id }} - {{ booking.package.title if booking.package else 'بدون باقة' }}</span>
+            <span class="status-pill status-{{ booking.status }}">{{ booking.status }}</span>
+            <time datetime="{{ booking.requested_at.isoformat() if booking.requested_at }}">
+              {{ booking.requested_at.strftime('%Y-%m-%d %H:%M') if booking.requested_at else '—' }}
+            </time>
+          </li>
+        {% else %}
+          <li class="empty-state">لا توجد حجوزات بانتظار الاعتماد.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="packages">
+    <header>
+      <div>
+        <h2 id="packages">الباقات والخدمات</h2>
+        <p>قم بإدارة الباقات الجاهزة والمخصصة، وحدد الأسعار والعروض المؤقتة.</p>
+      </div>
+      <a class="section-link" href="{{ url_for('admin_packages') }}">إدارة اعتماد الباقات</a>
+    </header>
+
+    <div class="packages-summary">
+      <div class="summary-card">
+        <span class="label">إجمالي الباقات</span>
+        <span class="value">{{ data.packages.total }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="label">قيد المراجعة</span>
+        <span class="value">{{ data.packages.pending }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="label">مرفوضة</span>
+        <span class="value">{{ data.packages.rejected }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="label">باقات مخصصة نشطة</span>
+        <span class="value">{{ data.packages.custom_bookings }}</span>
+      </div>
+    </div>
+
+    <div class="admin-timeline">
+      <h3>آخر إجراءات الإدارة</h3>
+      <ul>
+        {% for action in data.admin.actions %}
+          <li>
+            <div>
+              <span class="action-type">{{ action.action_type or 'إجراء إداري' }}</span>
+              <span class="action-target">
+                {{ action.target_table or '—' }}{% if action.target_id %} #{{ action.target_id }}{% endif %}
+              </span>
+            </div>
+            <time datetime="{{ action.created_at.isoformat() if action.created_at }}">
+              {{ action.created_at.strftime('%Y-%m-%d %H:%M') if action.created_at else '—' }}
+            </time>
+          </li>
+        {% else %}
+          <li class="empty-state">لا توجد إجراءات حديثة مسجلة.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
 </section>
 
 <style>
   .admin-dashboard {
-    max-width: 1000px;
+    --primary-color: #00a8a8;
+    --secondary-color: #008080;
+    --accent-color: #ffc107;
+    --surface-color: #f1fbfb;
+    --surface-strong: #e0f5f5;
+    --text-dark: #0f172a;
+    --text-muted: #4b5563;
+
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 40px 20px 60px;
-  }
-
-  .section-title {
-    margin-bottom: 8px;
-    font-size: 2rem;
-    color: #1e293b;
-  }
-
-  .subtitle {
-    color: #475569;
-    margin-bottom: 24px;
-  }
-
-  .cards {
+    padding: 32px 20px 80px;
     display: grid;
-    gap: 20px;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 36px;
   }
 
-  .card {
-    background: #fff;
-    border-radius: 18px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 20px 35px rgba(15, 23, 42, 0.08);
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2.1rem;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+  }
+
+  .dashboard-header p {
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  .header-indicator {
+    background: var(--surface-color);
+    border-radius: 12px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .indicator-label {
+    color: var(--text-dark);
+    font-weight: 600;
+  }
+
+  .indicator-badge {
+    background: var(--accent-color);
+    color: #fff;
+    min-width: 36px;
+    text-align: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  .overview h2,
+  .dashboard-section > header h2 {
+    margin-bottom: 12px;
+    color: var(--text-dark);
+    font-size: 1.5rem;
+  }
+
+  .metrics-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .metric-card {
+    background: linear-gradient(145deg, #ffffff 0%, var(--surface-color) 100%);
+    border-radius: 20px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
     padding: 24px;
     display: grid;
     gap: 12px;
   }
 
-  .count {
-    font-size: 2.4rem;
-    font-weight: 700;
-    color: #2563eb;
+  .metric-card h3 {
     margin: 0;
+    color: var(--text-dark);
+    font-size: 1rem;
   }
 
-  .cta {
-    justify-self: start;
-    padding: 10px 18px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  .metric-value {
+    font-size: 2.3rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+  }
+
+  .metric-card .metric-hint {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .metric-card.metric-accent {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
     color: #fff;
-    text-decoration: none;
+  }
+
+  .metric-card.metric-accent .metric-value {
+    color: #fff;
+  }
+
+  .metric-card.metric-accent .metric-hint {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .metric-card .currency {
+    font-size: 1rem;
     font-weight: 600;
+    margin-right: 4px;
+  }
+
+  .split-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .panel {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    padding: 24px;
+    display: grid;
+    gap: 16px;
+    background: #fff;
+  }
+
+  .panel header h2 {
+    margin: 0;
+    color: var(--text-dark);
+    font-size: 1.3rem;
+  }
+
+  .panel-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .satisfaction-gauge {
+    position: relative;
+    width: 220px;
+    margin: 0 auto;
+  }
+
+  .satisfaction-gauge svg {
+    width: 100%;
+    transform: rotate(140deg);
+  }
+
+  .gauge-bg {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 3.5;
+  }
+
+  .gauge-meter {
+    fill: none;
+    stroke: var(--accent-color);
+    stroke-linecap: round;
+    stroke-width: 3.5;
+  }
+
+  .gauge-value {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    transform: rotate(-140deg);
+    text-align: center;
+    gap: 4px;
+  }
+
+  .gauge-value .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+  }
+
+  .panel-note {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .notifications-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 16px;
+  }
+
+  .notifications-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .notifications-list strong {
+    color: var(--text-dark);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .notifications-list p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .notifications-list time {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .dashboard-section {
+    background: #fff;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    padding: 28px;
+    display: grid;
+    gap: 24px;
+  }
+
+  .dashboard-section > header {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .dashboard-section > header p {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+  }
+
+  .section-link {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(0, 168, 168, 0.25);
+    border-radius: 12px;
+    padding: 10px 16px;
+    transition: background 0.2s ease;
+  }
+
+  .section-link:hover {
+    background: rgba(0, 168, 168, 0.1);
+  }
+
+  .content-table {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+  }
+
+  .content-table .table-head,
+  .content-table .table-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.3fr 1fr 1.2fr;
+    gap: 12px;
+    padding: 14px 18px;
+    align-items: center;
+  }
+
+  .content-table .table-head {
+    background: var(--surface-color);
+    color: var(--text-dark);
+    font-weight: 700;
+  }
+
+  .content-table .table-row:nth-child(even) {
+    background: rgba(0, 168, 168, 0.05);
+  }
+
+  .row-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .row-actions button {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    background: var(--primary-color);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .row-actions button.secondary {
+    background: var(--surface-color);
+    color: var(--secondary-color);
+  }
+
+  .row-actions button:hover {
+    opacity: 0.9;
+  }
+
+  .cta-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .providers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .providers-panel {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 18px;
+    display: grid;
+    gap: 16px;
+  }
+
+  .providers-panel h3 {
+    margin: 0;
+    color: var(--text-dark);
+  }
+
+  .providers-panel ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .providers-panel li {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .hint {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .provider-meta {
+    display: grid;
+    gap: 4px;
+    text-align: end;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .bookings-layout {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 220px 1fr;
+  }
+
+  @media (max-width: 920px) {
+    .bookings-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .status-board {
+    display: grid;
+    gap: 12px;
+  }
+
+  .status-chip {
+    background: var(--surface-color);
+    border: 1px solid rgba(0, 128, 128, 0.2);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+
+  .latest-table .table-head,
+  .latest-table .table-row {
+    grid-template-columns: 1fr 1.2fr 0.8fr 0.9fr;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .status-pending {
+    background: rgba(255, 193, 7, 0.22);
+    color: #8a6d00;
+  }
+
+  .status-approved {
+    background: rgba(0, 168, 168, 0.22);
+    color: #006d6d;
+  }
+
+  .status-completed {
+    background: rgba(0, 128, 128, 0.22);
+    color: #005a5a;
+  }
+
+  .status-rejected,
+  .status-cancelled {
+    background: rgba(239, 68, 68, 0.18);
+    color: #b91c1c;
+  }
+
+  .alerts {
+    background: var(--surface-color);
+    border-radius: 16px;
+    padding: 18px 22px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .alerts h3 {
+    margin-top: 0;
+    color: var(--text-dark);
+  }
+
+  .alerts ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .alerts li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .alerts time {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .packages-summary {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .summary-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px 20px;
+    background: var(--surface-color);
+  }
+
+  .summary-card .label {
+    display: block;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .summary-card .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+
+  .admin-timeline {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    background: var(--surface-color);
+  }
+
+  .admin-timeline h3 {
+    margin-top: 0;
+    color: var(--text-dark);
+    margin-bottom: 16px;
+  }
+
+  .admin-timeline ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+  }
+
+  .admin-timeline li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  .action-type {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-right: 6px;
+  }
+
+  .action-target {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .admin-timeline time {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .empty-state {
+    color: rgba(0, 128, 128, 0.55);
+    font-style: italic;
+  }
+
+  @media (max-width: 640px) {
+    .content-table .table-head,
+    .content-table .table-row {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+
+    .row-actions {
+      justify-content: center;
+    }
+
+    .dashboard-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .header-indicator {
+      justify-content: center;
+    }
   }
 </style>
 {% endblock %}

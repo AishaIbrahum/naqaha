@@ -43,7 +43,11 @@ from sqlalchemy.orm import joinedload
 
 app = Flask(__name__)
 app.secret_key = "secretkey123"
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////mnt/c/Users/hanee/OneDrive/Desktop/naqaha/instance/nqaha.db"
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
+os.makedirs(INSTANCE_DIR, exist_ok=True)
+DATABASE_PATH = os.path.join(INSTANCE_DIR, "nqaha.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DATABASE_PATH}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
@@ -1204,8 +1208,151 @@ def admin_register():
 @app.route('/admin_dashboard')
 @admin_login_required
 def admin_dashboard():
-    pending_count = Package.query.filter_by(status='pending').count()
-    return render_template('admin_dashboard.html', pending_packages=pending_count, user=None)
+    today = date.today()
+    month_start = date(today.year, today.month, 1)
+
+    total_users = User.query.count()
+    total_companies = Company.query.count()
+    total_doctors = Doctor.query.count()
+    total_bookings = Booking.query.count()
+
+    package_totals = {
+        'total': Package.query.count(),
+        'approved': Package.query.filter_by(status='approved').count(),
+        'pending': Package.query.filter_by(status='pending').count(),
+        'rejected': Package.query.filter_by(status='rejected').count(),
+    }
+
+    custom_package_bookings = (
+        db.session.query(func.count(func.distinct(BookingServiceSelection.booking_id)))
+        .scalar()
+        or 0
+    )
+
+    monthly_revenue = (
+        db.session.query(func.coalesce(func.sum(Invoice.amount), 0))
+        .filter(
+            Invoice.status == 'paid',
+            Invoice.paid_at.isnot(None),
+            Invoice.paid_at >= month_start
+        )
+        .scalar()
+        or 0
+    )
+
+    avg_rating = (
+        db.session.query(func.avg(DoctorReview.rating))
+        .scalar()
+    ) or 0
+    satisfaction_score = round((avg_rating / 5) * 100) if avg_rating else 0
+
+    unread_notifications_count = Notification.query.filter_by(is_read=False).count()
+    recent_notifications = (
+        Notification.query
+        .order_by(Notification.created_at.desc())
+        .limit(6)
+        .all()
+    )
+
+    booking_status_rows = (
+        db.session.query(Booking.status, func.count(Booking.id))
+        .group_by(Booking.status)
+        .all()
+    )
+    booking_status_counts = {status or 'غير محدد': count for status, count in booking_status_rows}
+
+    pending_booking_alerts = (
+        Booking.query
+        .filter(Booking.status.in_(('pending', 'approved')))
+        .order_by(Booking.requested_at.desc())
+        .limit(5)
+        .all()
+    )
+
+    latest_bookings = (
+        Booking.query
+        .options(
+            joinedload(Booking.user),
+            joinedload(Booking.package)
+        )
+        .order_by(Booking.requested_at.desc())
+        .limit(10)
+        .all()
+    )
+
+    recent_users = (
+        User.query
+        .order_by(User.id.desc())
+        .limit(6)
+        .all()
+    )
+
+    latest_doctors = (
+        db.session.query(
+            Doctor,
+            func.count(DoctorReview.id).label('reviews_count'),
+            func.coalesce(func.avg(DoctorReview.rating), 0).label('avg_rating')
+        )
+        .outerjoin(DoctorReview)
+        .group_by(Doctor.id)
+        .order_by(func.coalesce(func.avg(DoctorReview.rating), 0).desc())
+        .limit(6)
+        .all()
+    )
+
+    pending_doctors = (
+        Doctor.query
+        .filter(Doctor.status == 'pending')
+        .order_by(Doctor.id.desc())
+        .limit(5)
+        .all()
+    )
+
+    latest_admin_actions = (
+        AdminAction.query
+        .order_by(AdminAction.created_at.desc())
+        .limit(6)
+        .all()
+    )
+
+    dashboard_data = {
+        'users': {
+            'total': total_users,
+            'recent': recent_users,
+        },
+        'providers': {
+            'companies': total_companies,
+            'doctors': total_doctors,
+            'latest': latest_doctors,
+            'pending': pending_doctors,
+        },
+        'bookings': {
+            'total': total_bookings,
+            'statuses': booking_status_counts,
+            'latest': latest_bookings,
+            'alerts': pending_booking_alerts,
+        },
+        'packages': {
+            **package_totals,
+            'custom_bookings': custom_package_bookings,
+        },
+        'finance': {
+            'monthly_revenue': monthly_revenue,
+        },
+        'satisfaction': {
+            'average_score': avg_rating,
+            'percentage': satisfaction_score,
+        },
+        'notifications': {
+            'unread_count': unread_notifications_count,
+            'recent': recent_notifications,
+        },
+        'admin': {
+            'actions': latest_admin_actions,
+        }
+    }
+
+    return render_template('admin_dashboard.html', data=dashboard_data, user=None)
 
 
 @app.route('/admin/packages')

@@ -225,14 +225,14 @@
         }
 
         .forgot-password:hover {
-            color: var(--primary-color);
+            color: var(--accent-color);
             text-decoration: underline;
         }
 
         .btn-primary {
             border-radius: 25px;
             border: none;
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: #FFFFFF;
             font-size: 16px;
             font-weight: bold;
@@ -247,7 +247,7 @@
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
-            background: var(--secondary-color);
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
         }
 
         .btn-primary:active {
@@ -256,9 +256,9 @@
 
         .btn-ghost {
             border-radius: 25px;
-            border: 2px solid #FFFFFF;
+            border: 2px solid var(--accent-color);
             background-color: transparent;
-            color: #FFFFFF;
+            color: var(--accent-color);
             font-size: 16px;
             font-weight: bold;
             padding: 14px 50px;
@@ -269,7 +269,7 @@
 
         .btn-ghost:hover {
             background-color: white;
-            color: var(--primary-color);
+            color: var(--secondary-color);
             transform: scale(1.05);
         }
 
@@ -291,7 +291,7 @@
 
         /* Overlay Panel */
         .overlay {
-            background: linear-gradient(135deg, #f2f2f2 0%, var(--primary-color) 50%, var(--secondary-color) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, var(--primary-color) 45%, var(--accent-color) 75%, var(--secondary-color) 100%);
             background-repeat: no-repeat;
             background-size: cover;
             background-position: 0 0;
