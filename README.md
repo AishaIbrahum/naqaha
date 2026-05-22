@@ -1,235 +1,123 @@
 # 🏥 Naqaha Platform | نقاهة
 
-Naqaha is an integrated **healthcare and medical tourism platform** designed to streamline patient care, treatment coordination, healthcare services, travel support, and operational management through a unified digital ecosystem.
-
-The platform aims to improve healthcare accessibility, service efficiency, and personalized treatment experiences for both local and international patients.
+A smart healthcare & medical tourism platform designed to simplify patient journeys by connecting healthcare services, booking systems, and medical travel coordination into one unified digital experience.
 
 ---
 
-## 📑 Table of Contents
+## 🖼️ Platform Preview
 
-- Project Overview  
-- Core Features  
-- Platform Modules  
-- Screenshots  
-- System Architecture  
-- Dashboard & Analytics  
-- Business Model  
-- Technology Stack  
-- Security & Scalability  
-- Future Roadmap  
-- Why Naqaha  
-- Author  
+![Naqaha Screenshot](./assets/images/preview.png)
+
+---
+
+## 🎥 Demo
+
+▶️ Download / Watch Demo:
+
+📦 [Demo Video (Compressed)](./assets/video/demo.zip)
 
 ---
 
 ## 🌍 Project Overview
 
-Naqaha was designed to solve challenges in healthcare coordination by combining multiple services into one centralized platform.
-
-It supports the complete patient journey through:
+Naqaha is a healthcare ecosystem platform that integrates:
 
 - Healthcare provider discovery  
-- Appointment scheduling  
-- Treatment coordination  
-- Medical tourism support  
-- Patient service management  
-- Operational dashboards  
-- Data analytics and reporting  
-- Smart healthcare workflows  
+- Appointment booking system  
+- Medical tourism coordination  
+- Patient journey management  
+- Administrative dashboard  
+- Analytics & reporting tools  
 
-Naqaha creates a connected healthcare ecosystem that improves both patient experience and operational visibility.
+The platform aims to improve healthcare accessibility and service efficiency.
 
 ---
 
 ## 🚀 Core Features
 
-### 🏥 Healthcare Management
-- Browse hospitals, clinics, and healthcare providers  
-- View specialties and treatment services  
-- Healthcare information access  
+### 🏥 Healthcare Services
+- Browse hospitals and clinics  
+- Explore specialties and treatments  
+- View provider details  
 
-### 📅 Appointment & Booking System
+### 📅 Booking System
 - Appointment scheduling  
-- Booking management  
-- Patient service tracking  
-- Organized treatment workflow  
+- Patient management  
+- Booking history tracking  
 
-### ✈️ Medical Tourism Support
-- Accommodation planning  
-- Transportation coordination  
-- Medical travel support  
-- Patient logistics assistance  
+### ✈️ Medical Tourism
+- Travel coordination  
+- Accommodation support  
+- Transportation assistance  
 
-### 📊 Analytics & Reporting
-- Performance dashboards  
-- Operational insights  
-- Booking visibility  
-- Service monitoring  
-- Data-driven reporting  
-
-### 👨‍💼 Administration
-- Admin dashboard  
-- Service control panel  
-- Healthcare provider management  
-- Platform monitoring  
-
-### 🌐 User Experience
-- Responsive web experience  
-- Organized workflows  
-- Scalable platform structure  
-- Clean UI/UX design  
+### 📊 Dashboard & Analytics
+- Performance insights  
+- Booking statistics  
+- Operational reports  
 
 ---
 
 ## 🧩 Platform Modules
 
-Naqaha consists of multiple integrated modules:
-
 - Patient Portal  
 - Healthcare Provider Dashboard  
-- Appointment & Booking Management  
-- Medical Tourism Coordination  
-- Analytics & Reporting Dashboard  
-- Admin Control Panel  
-- Service Monitoring Layer  
-- Recommendation & Optimization Layer  
-
----
-
-## 🖼️ Platform Screenshots
-
-### Home Interface
-```markdown
-![Home](./assets/images/home.png)
-```
-
-### Healthcare Services
-```markdown
-![Services](./assets/images/services.png)
-```
-
-### Booking Management
-```markdown
-![Booking](./assets/images/booking.png)
-```
-
-### Dashboard
-```markdown
-![Dashboard](./assets/images/dashboard.png)
-```
-
-### Analytics View
-```markdown
-![Analytics](./assets/images/analytics.png)
-```
+- Booking Engine  
+- Medical Tourism Module  
+- Admin Panel  
+- Analytics System  
 
 ---
 
 ## 🧱 System Architecture
 
-The platform is designed as a modular and scalable ecosystem:
-
-- User Interface Layer  
-- Healthcare Services Layer  
-- Booking & Coordination Layer  
-- Business Logic Layer  
+- Frontend Layer (UI)  
+- Backend Services  
+- Booking Workflow Engine  
 - Data Management Layer  
-- Analytics & Reporting Layer  
-- Security & Access Control Layer  
-- Administration Layer  
-
----
-
-## 📊 Dashboard & Analytics
-
-Naqaha includes business and healthcare visibility features such as:
-
-- Patient activity tracking  
-- Appointment insights  
-- Service performance monitoring  
-- Healthcare provider visibility  
-- Operational reporting  
-- Data analytics dashboards  
-- Business intelligence support  
+- Analytics Layer  
 
 ---
 
 ## 💼 Business Model
 
-Naqaha follows a scalable healthcare platform model:
-
-- Booking commissions  
-- Premium healthcare packages  
-- Hospital & clinic partnerships  
-- Corporate healthcare programs  
-- Subscription-based provider services  
-- Sponsored healthcare visibility  
-- Operational data insights  
+- Commission per booking  
+- Healthcare partnerships  
+- Premium services  
+- Subscription plans  
+- Corporate healthcare solutions  
 
 ---
 
-## ⚙️ Technology Stack
+## ⚙️ Tech Stack
 
-### Frontend
-- React.js  
-- TypeScript  
-- Tailwind CSS  
-
-### Backend
-- Node.js / Express  
-
-### Database
-- PostgreSQL / MongoDB  
-
-### Analytics
-- Power BI  
-- Data Visualization & Reporting  
-
-### APIs & Integration
-- REST APIs  
-- Third-party service integrations  
-
-### Deployment & Cloud
-- AWS  
-- Azure  
-- Vercel  
+- HTML / CSS / JavaScript  
+- Python (Flask)  
+- Power BI (Analytics)  
+- Git & GitHub  
 
 ---
 
-## 🔐 Security & Scalability
+## 📈 Future Roadmap
 
-Naqaha is designed with future scalability in mind:
-
-- Role-based access management  
-- Scalable modular architecture  
-- Secure healthcare workflows  
-- Centralized service visibility  
-- Data management readiness  
-- Cloud deployment support  
-
----
-
-
-
-## 🏥 Why Naqaha
-
-Naqaha bridges the gap between **healthcare accessibility, patient coordination, digital services, and operational intelligence**.
-
-It is built to support modern healthcare transformation and create a more connected patient-centered ecosystem.
+- AI-powered recommendations  
+- Telemedicine integration  
+- Mobile application  
+- Online payments  
+- Cloud deployment  
+- Multi-language support  
 
 ---
 
 ## 👩‍💻 Author
 
 **Aisha Ibrahim**  
-Frontend Developer | UI/UX Enthusiast | Product Builder  
+Frontend Developer | UI/UX Enthusiast | Aspiring Full-Stack Developer  
 
 📧 Email: aisha.ibr2412@gmail.com  
-🌐 GitHub: https://github.com/AishaIbrahum
+🌐 GitHub: https://github.com/AishaIbrahum  
 
 ---
 
 ## ⭐ Support
 
-If you found this project valuable, consider giving it a ⭐ on GitHub.
+If you like this project, please give it a ⭐ on GitHub.
