@@ -32,7 +32,7 @@ with app.app_context():
         user = User(
             username="testuser22",
             email="user2@test.com",
-            password=generate_password_hash("1234ح56"),
+            password=generate_password_hash("123456"),
             first_name="Hanin",
             last_name="Bin Bishar",
             phone="0500000000",
