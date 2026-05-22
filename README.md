@@ -1,117 +1,107 @@
-# 🏥 Naqaha Platform | نقاهة
+# 🏥 Naqaha Platform | منصة نقاهة
 
-A smart healthcare & medical tourism platform designed to simplify patient journeys by connecting healthcare services, booking systems, and medical travel coordination into one unified digital experience.
-
----
-
-## 🖼️ Platform Preview
-
-![Naqaha Screenshot](./assets/images/preview.png)
+A smart healthcare & medical tourism platform that connects patients with healthcare providers and simplifies the journey from booking to treatment in one unified system.
 
 ---
 
-## 🎥 Demo
+## 🖼️ Project Preview
 
-▶️ Download / Watch Demo:
-
-📦 [Demo Video (Compressed)](./assets/video/demo.zip)
+![Naqaha Preview](./assets/images/preview.png)
 
 ---
 
-## 🌍 Project Overview
+## 🎥 Demo Video
 
-Naqaha is a healthcare ecosystem platform that integrates:
+📦 Download Demo:
 
-- Healthcare provider discovery  
-- Appointment booking system  
-- Medical tourism coordination  
-- Patient journey management  
-- Administrative dashboard  
-- Analytics & reporting tools  
-
-The platform aims to improve healthcare accessibility and service efficiency.
+👉 [Click here to download demo video](./assets/video/demo.zip)
 
 ---
 
-## 🚀 Core Features
+## 🌍 About the Project
+
+**Naqaha** is a healthcare and medical tourism platform designed to:
+
+- Connect patients with hospitals and clinics  
+- Simplify appointment booking  
+- Support medical tourism services  
+- Provide a unified patient journey experience  
+- Offer a scalable healthcare management system  
+
+---
+
+## 🚀 Key Features
 
 ### 🏥 Healthcare Services
-- Browse hospitals and clinics  
-- Explore specialties and treatments  
-- View provider details  
+- Browse hospitals & clinics  
+- View specialties and doctors  
+- Explore treatment options  
 
 ### 📅 Booking System
 - Appointment scheduling  
-- Patient management  
-- Booking history tracking  
+- Booking management  
+- Patient history tracking  
 
 ### ✈️ Medical Tourism
 - Travel coordination  
 - Accommodation support  
 - Transportation assistance  
 
-### 📊 Dashboard & Analytics
-- Performance insights  
-- Booking statistics  
-- Operational reports  
+### 📊 Admin Dashboard
+- Manage bookings  
+- View analytics  
+- Monitor system activity  
 
 ---
 
-## 🧩 Platform Modules
+## 🧱 System Modules
 
 - Patient Portal  
-- Healthcare Provider Dashboard  
+- Provider Dashboard  
 - Booking Engine  
-- Medical Tourism Module  
 - Admin Panel  
 - Analytics System  
-
----
-
-## 🧱 System Architecture
-
-- Frontend Layer (UI)  
-- Backend Services  
-- Booking Workflow Engine  
-- Data Management Layer  
-- Analytics Layer  
-
----
-
-## 💼 Business Model
-
-- Commission per booking  
-- Healthcare partnerships  
-- Premium services  
-- Subscription plans  
-- Corporate healthcare solutions  
 
 ---
 
 ## ⚙️ Tech Stack
 
 - HTML / CSS / JavaScript  
-- Python (Flask)  
-- Power BI (Analytics)  
+- Python (Flask Backend)  
 - Git & GitHub  
 
 ---
 
-## 📈 Future Roadmap
+## 📈 Future Improvements
 
-- AI-powered recommendations  
-- Telemedicine integration  
-- Mobile application  
-- Online payments  
-- Cloud deployment  
+- AI-based recommendations  
+- Online payments integration  
+- Mobile application (iOS / Android)  
+- Telemedicine system  
 - Multi-language support  
+- Cloud deployment  
+
+---
+
+## 🧑‍💻 How to Run Project
+
+```bash
+git clone https://github.com/AishaIbrahum/naqaha.git
+cd naqaha_last_version
+python app.py
+```
+
+Then open:
+```
+http://127.0.0.1:5000
+```
 
 ---
 
 ## 👩‍💻 Author
 
 **Aisha Ibrahim**  
-Frontend Developer | UI/UX Enthusiast | Aspiring Full-Stack Developer  
+Frontend Developer | UI/UX Enthusiast  
 
 📧 Email: aisha.ibr2412@gmail.com  
 🌐 GitHub: https://github.com/AishaIbrahum  
