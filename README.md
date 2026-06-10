@@ -1,4 +1,4 @@
-# 🏥 Naqaha Platform | منصة نقاهة
+# 🏥 Naqaha Platform  
 
 A smart healthcare & medical tourism platform that connects patients with healthcare providers and simplifies the journey from booking to treatment in one unified system.
 
